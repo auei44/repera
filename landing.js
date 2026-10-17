@@ -185,11 +185,7 @@
         app.hidden = true;
         welcome.hidden = false;
         window.scrollTo(0, 0);
-        const privacy = event.currentTarget.id === "privacy-open";
-        if (privacy) document.querySelector("#privacy-notice details").open = true;
-        const target = document.getElementById(privacy ? "privacy-title" : "home-link");
-        target.focus();
+        document.getElementById("home-link").focus();
     }
-    document.getElementById("privacy-open").addEventListener("click", showWelcome);
     document.getElementById("home-link").addEventListener("click", showWelcome);
 })();
