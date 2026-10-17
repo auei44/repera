@@ -1,0 +1,320 @@
+{
+  "checkpoint": "models/miele-expansion-v3/experimental-final.pt",
+  "families": {
+    "bissell_powerforce_helix_family": {
+      "name": "BISSELL PowerForce Helix family",
+      "models": [
+        "bissell_2191"
+      ],
+      "recognized_models": [
+        "bissell_2191"
+      ]
+    },
+    "blackdecker_hhvi315jo_family": {
+      "name": "BLACK+DECKER HHVI315JO family",
+      "models": [
+        "blackdecker_hhvi315jo42"
+      ],
+      "recognized_models": [
+        "blackdecker_hhvi315jo42"
+      ]
+    },
+    "dyson_v8_family": {
+      "name": "Dyson V8 family",
+      "models": [
+        "dyson_v8_animal_sv10"
+      ],
+      "recognized_models": [
+        "dyson_v8_animal_sv10"
+      ]
+    },
+    "bissell_cleanview_2252_family": {
+      "name": "BISSELL CleanView family",
+      "models": [
+        "bissell_2252"
+      ],
+      "recognized_models": [
+        "bissell_2252"
+      ]
+    },
+    "shark_nv352": {
+      "name": "Shark Navigator NV352",
+      "models": [],
+      "recognized_models": [
+        "shark_nv352"
+      ]
+    },
+    "shark_iz163h": {
+      "name": "Shark Rocket Pet Pro IZ163H",
+      "models": [],
+      "recognized_models": [
+        "shark_iz163h"
+      ]
+    },
+    "shark_wv201": {
+      "name": "Shark WANDVAC WV201",
+      "models": [],
+      "recognized_models": [
+        "shark_wv201"
+      ]
+    },
+    "dirtdevil_spider": {
+      "name": "Dirt Devil Spider family",
+      "models": [
+        "dirtdevil_spider"
+      ],
+      "recognized_models": [
+        "dirtdevil_spider"
+      ]
+    },
+    "robovox_zaco": {
+      "name": "Robovox ZACO family",
+      "models": [
+        "robovox_zaco"
+      ],
+      "recognized_models": [
+        "robovox_zaco"
+      ]
+    },
+    "neato_botvac": {
+      "name": "Neato Botvac family",
+      "models": [
+        "neato_botvac"
+      ],
+      "recognized_models": [
+        "neato_botvac"
+      ]
+    },
+    "ecovacs_deebot_da60": {
+      "name": "ECOVACS DEEBOT DA60",
+      "models": [
+        "ecovacs_deebot_da60"
+      ],
+      "recognized_models": [
+        "ecovacs_deebot_da60"
+      ]
+    },
+    "vileda_m_h498": {
+      "name": "Vileda M-H498",
+      "models": [],
+      "recognized_models": [
+        "vileda_m_h498"
+      ]
+    },
+    "blaupunkt_bluebot": {
+      "name": "Blaupunkt Bluebot XPOWER+ (BPK-VCBB1XPW+)",
+      "models": [
+        "blaupunkt_bluebot"
+      ],
+      "recognized_models": [
+        "blaupunkt_bluebot"
+      ]
+    },
+    "vorwerk_kobold_vr100": {
+      "name": "Vorwerk Kobold VR100",
+      "models": [
+        "vorwerk_kobold_vr100"
+      ],
+      "recognized_models": [
+        "vorwerk_kobold_vr100"
+      ]
+    },
+    "severin_chill": {
+      "name": "Severin Chill family",
+      "models": [
+        "severin_chill"
+      ],
+      "recognized_models": [
+        "severin_chill"
+      ]
+    },
+    "irobot_roomba": {
+      "name": "iRobot Roomba family",
+      "models": [
+        "irobot_roomba_560",
+        "irobot_roomba_600_legacy",
+        "irobot_roomba_700_legacy",
+        "irobot_roomba_800_legacy",
+        "irobot_roomba_900",
+        "irobot_roomba_s9"
+      ],
+      "recognized_models": [
+        "irobot_roomba",
+        "irobot_roomba_560",
+        "irobot_roomba_600_legacy",
+        "irobot_roomba_700_legacy",
+        "irobot_roomba_800_legacy",
+        "irobot_roomba_900",
+        "irobot_roomba_s9"
+      ]
+    },
+    "ecovacs_deebot_dg3g": {
+      "name": "ECOVACS DEEBOT DG3G",
+      "models": [
+        "ecovacs_deebot_dg3g"
+      ],
+      "recognized_models": [
+        "ecovacs_deebot_dg3g"
+      ]
+    },
+    "tcl_sweeva1000_b100a": {
+      "name": "TCL Sweeva 1000 B100A",
+      "models": [
+        "tcl_sweeva1000_b100a"
+      ],
+      "recognized_models": [
+        "tcl_sweeva1000_b100a"
+      ]
+    },
+    "ilife_v5s_pro": {
+      "name": "ILIFE V5s Pro",
+      "models": [
+        "ilife_v5s_pro"
+      ],
+      "recognized_models": [
+        "ilife_v5s_pro"
+      ]
+    },
+    "proscenic_coco_smart_790t": {
+      "name": "Proscenic COCO Smart 790T",
+      "models": [
+        "proscenic_coco_smart_790t"
+      ],
+      "recognized_models": [
+        "proscenic_coco_smart_790t"
+      ]
+    },
+    "klarstein_vc_cleanhero_w": {
+      "name": "Klarstein VC-Cleanhero-W (10028520)",
+      "models": [
+        "klarstein_vc_cleanhero_w"
+      ],
+      "recognized_models": [
+        "klarstein_vc_cleanhero_w"
+      ]
+    },
+    "medion_md_17225": {
+      "name": "MEDION MD 17225",
+      "models": [
+        "medion_md_17225"
+      ],
+      "recognized_models": [
+        "medion_md_17225"
+      ]
+    },
+    "eufy_robovac_30c": {
+      "name": "eufy RoboVac 30C (T2118)",
+      "models": [
+        "eufy_robovac_30c"
+      ],
+      "recognized_models": [
+        "eufy_robovac_30c"
+      ]
+    },
+    "dirtdevil_tracker_m613": {
+      "name": "Dirt Devil Tracker M613",
+      "models": [
+        "dirtdevil_tracker_m613"
+      ],
+      "recognized_models": [
+        "dirtdevil_tracker_m613"
+      ]
+    },
+    "easyhome_saugroboter": {
+      "name": "Easyhome robot vacuum (variant unknown)",
+      "models": [],
+      "recognized_models": [
+        "easyhome_saugroboter"
+      ]
+    },
+    "ecovacs_deebot_dx9g": {
+      "name": "ECOVACS DEEBOT OZMO 950 (DX9G)",
+      "models": [
+        "ecovacs_deebot_dx9g"
+      ],
+      "recognized_models": [
+        "ecovacs_deebot_dx9g"
+      ]
+    },
+    "vileda_a3": {
+      "name": "Vileda A3",
+      "models": [],
+      "recognized_models": [
+        "vileda_a3"
+      ]
+    },
+    "roborock_s502_00": {
+      "name": "Roborock S502-00",
+      "models": [
+        "roborock_s502_00"
+      ],
+      "recognized_models": [
+        "roborock_s502_00"
+      ]
+    },
+    "tesvor_s6": {
+      "name": "Tesvor S6",
+      "models": [
+        "tesvor_s6"
+      ],
+      "recognized_models": [
+        "tesvor_s6"
+      ]
+    },
+    "proscenic_811gb": {
+      "name": "Proscenic 811GB",
+      "models": [
+        "proscenic_811gb"
+      ],
+      "recognized_models": [
+        "proscenic_811gb"
+      ]
+    },
+    "tesvor_x500": {
+      "name": "Tesvor X500",
+      "models": [
+        "tesvor_x500"
+      ],
+      "recognized_models": [
+        "tesvor_x500"
+      ]
+    },
+    "eufy_robovac_11s": {
+      "name": "eufy RoboVac 11S (T2108)",
+      "models": [
+        "eufy_robovac_11s"
+      ],
+      "recognized_models": [
+        "eufy_robovac_11s"
+      ]
+    },
+    "samsung_sr10j503au": {
+      "name": "Samsung SR10J503AU",
+      "models": [
+        "samsung_sr10j503au"
+      ],
+      "recognized_models": [
+        "samsung_sr10j503au"
+      ]
+    },
+    "xiaomi_s10": {
+      "name": "Xiaomi Robot Vacuum S10",
+      "models": [
+        "xiaomi_s10"
+      ],
+      "recognized_models": [
+        "xiaomi_s10"
+      ]
+    },
+    "miele_classic_c1_sban0": {
+      "name": "Miele Classic C1 SBAN0",
+      "models": [
+        "miele_classic_c1_sban0"
+      ],
+      "recognized_models": [
+        "miele_classic_c1_sban0"
+      ]
+    }
+  },
+  "training_manifest": "artifacts/miele-expansion-v3/manifest.json"
+}
