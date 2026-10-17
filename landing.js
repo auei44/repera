@@ -179,14 +179,15 @@
         }
     }
     document.querySelectorAll('a[href="#vacuum-tools"]').forEach(link => link.addEventListener("click", enter));
-    document.getElementById("privacy-dismiss").addEventListener("click", enter);
     function showWelcome(event) {
         event.preventDefault();
         if (entering) return;
         app.hidden = true;
         welcome.hidden = false;
         window.scrollTo(0, 0);
-        const target = event.currentTarget.id === "privacy-open" ? document.getElementById("privacy-dismiss") : document.getElementById("home-link");
+        const privacy = event.currentTarget.id === "privacy-open";
+        if (privacy) document.querySelector("#privacy-notice details").open = true;
+        const target = document.getElementById(privacy ? "privacy-title" : "home-link");
         target.focus();
     }
     document.getElementById("privacy-open").addEventListener("click", showWelcome);

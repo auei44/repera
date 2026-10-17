@@ -14,26 +14,25 @@
         <!-- Introduce the environmental purpose before the existing vacuum tools. -->
         <nav class="site-nav" aria-label="Main navigation">
             <a class="brand" id="home-link" href="#welcome-screen" aria-label="Repera home">Repera</a>
-            <a href="#vacuum-tools">Start troubleshooting</a>
         </nav>
         <div id="welcome-screen">
         <section class="earth-intro" aria-labelledby="intro-title">
             <div class="intro-copy">
                 
                 <p class="intro-kicker">Repair first. Waste less.</p>
-                <h1 id="intro-title"><span>Before you</span><span>replace it.</span></h1>
-                <p class="intro-text">Give your vacuum a longer life. Work through the problem, find a safe next step, and explore repair before replacement.</p>
-                <p class="mission-copy">Less waste starts with keeping useful things in use. In 2022, the world generated 62 million tonnes of e-waste; only 22.3% was documented as formally collected and recycled.</p>
+                <h1 id="intro-title"><span>Before you</span><span>toss it.</span></h1>
+                <p class="intro-text">Identify the vacuum. Work out the problem. Find a solution.</p>
+                <p class="mission-copy">Less waste starts with keeping things in use. In 2022, the world generated 62 million tonnes of e-waste; only 22.3% was documented as formally collected and recycled.</p>
                 <a class="button-link" href="#vacuum-tools">Start troubleshooting</a>
                 <p class="entry-note">No account needed. Guidance for supported vacuum models.</p>
                 <p class="intro-source">2022 data · <a href="https://www.itu.int/en/ITU-D/Environment/Pages/Publications/The-Global-E-waste-Monitor-2024.aspx" target="_blank" rel="noopener noreferrer">ITU / UNITAR, Global E-waste Monitor 2024</a></p>
             </div>
             <div class="earth-panel">
-                <p class="globe-caption" id="globe-caption">Red areas illustrate the global e-waste problem.</p>
-                <p class="map-note">Illustrative positions, not mapped dumping sites or measured amounts.</p>
+                <p class="globe-caption" id="globe-caption">Red circles illustrate e-waste around the world.</p>
+                <p class="map-note" hidden></p>
                 <canvas id="waste-globe" width="640" height="640" role="img" aria-describedby="globe-caption" aria-label="Rotating Earth with natural-color land, oceans and ice. Red markers illustrate the global e-waste problem; positions and sizes do not identify actual waste sites or amounts."></canvas>
-                <div class="earth-heading"><a class="map-note" href="https://ewastemonitor.info/wp-content/uploads/2024/03/GEM_2024_18-03_web_executive-Summery.pdf" target="_blank" rel="noopener noreferrer">2022 regional data: ITU / UNITAR</a><button id="globe-motion" class="secondary" type="button" aria-pressed="false">Pause rotation</button></div>
-                <p class="map-note">Earth imagery: <a href="https://science.nasa.gov/earth/earth-observatory/the-blue-marble-true-color-global-imagery-at-1km-resolution/" target="_blank" rel="noopener noreferrer">NASA Blue Marble</a> (historical composite).</p>
+                <div class="earth-heading"><a class="map-note" href="https://ewastemonitor.info/wp-content/uploads/2024/03/GEM_2024_18-03_web_executive-Summery.pdf" target="_blank" rel="noopener noreferrer">E-waste report: ITU / UNITAR</a><button id="globe-motion" class="secondary" type="button" aria-pressed="false">Pause rotation</button></div>
+                <p class="map-note">Earth imagery: <a href="https://science.nasa.gov/earth/earth-observatory/the-blue-marble-true-color-global-imagery-at-1km-resolution/" target="_blank" rel="noopener noreferrer">NASA Blue Marble</a>.</p>
             </div>
         </section>
         <!-- Explain the actual workflow before someone enters, without promising a repair. -->
@@ -44,8 +43,7 @@
         </ol>
         <!-- This notice describes actual behavior; it does not request tracking consent. -->
         <aside id="privacy-notice" class="privacy-notice" aria-labelledby="privacy-title">
-            <div><h2 id="privacy-title">Cookies &amp; privacy</h2><p>No tracking cookies or analytics. Photo recognition processes uploads on the Repera server without saving them. Shared links pass requests and photos through Cloudflare. When Gemini is configured, photo identification sends your photo to Google. Finishing the questions sends your answers, plus any photo and description you provided, to generate the final explanation. Google may use free-tier content to improve its products.</p></div>
-            <button id="privacy-dismiss" type="button" class="secondary">Got it — enter Repera</button>
+            <details class="privacy-details"><summary id="privacy-title">Photo privacy</summary><p>No tracking cookies. Repera processes photos without saving them. Google receives your photo, answers and description for the assessment and may use free-tier content to improve its products. Leave out personal information.</p></details>
         </aside>
         </div>
         <!-- The welcome screen opens first; entering reveals the existing tools. -->
@@ -60,7 +58,7 @@
             
             <h2>Vacuum troubleshooting</h2>
             <p>Add a photo or choose your model. We’ll help you work out what to check next.</p>
-            <p id="recognition-status" class="muted" role="status">Manual guidance is available. Local photo recognition requires the Repera server.</p>
+            <p id="recognition-status" class="muted" role="status"></p>
             <details id="model-coverage" hidden>
                 <summary>Which vacuums can it recognize?</summary>
                 <p id="model-coverage-note" class="muted"></p>
@@ -85,7 +83,7 @@
                     <button id="clear-photo-button" class="secondary" type="button" hidden>Remove photo</button>
                     <aside id="gemini-photo-panel" class="gemini-panel" hidden aria-labelledby="gemini-photo-title">
                         <h3 id="gemini-photo-title">Model check</h3>
-                        <p id="gemini-setup-status" role="status">Gemini needs the local server and a server-side API key. Local recognition still works without it.</p>
+                        <p id="gemini-setup-status" role="status"></p>
                         <p>Your label confirmation determines which model guidance is used.</p>
                         <button id="gemini-photo-button" type="button" class="secondary" hidden disabled>Send photo to Gemini</button>
                         <div id="gemini-photo-result" role="status"></div>
@@ -104,10 +102,10 @@
                 </div>
             </div>
             <div class="selection-actions">
-                <div id="journey-consent-panel">
-                    <p><strong>Before you continue</strong></p>
-                    <p class="muted">When Gemini is connected, photo identification sends your photo to Google. Finishing the questions sends your answers, plus any photo and description you provided, for an assessment. Google may use free-tier content to improve products. Leave out personal information.</p>
-                </div>
+                <details id="journey-consent-panel" class="privacy-details">
+                    <summary>Photo privacy</summary>
+                    <p class="muted">Your photo, answers and description are sent to Google for the assessment. Google may use free-tier content to improve its products. Leave out personal information.</p>
+                </details>
                 <div class="intake-buttons"><button id="identify-button" type="button">Identify vacuum</button><button id="resume-diagnosis-button" type="button" class="secondary" hidden>Return to current assessment</button></div>
             </div>
             <p id="input-error" role="alert"></p>
@@ -182,11 +180,11 @@
                     <p id="manufacturer-contact"></p>
                 <aside id="gemini-explanation-panel" class="gemini-panel" hidden aria-labelledby="gemini-explanation-title">
                     <h3 id="gemini-explanation-title">Your assessment explained</h3>
-                    <p>Gemini explains your answers using the verified guidance, with your photo and description when provided.</p>
+                    <p>An explanation of your answers and any photo or description, based on the guidance above.</p>
                     <button id="gemini-explain-button" type="button" class="secondary" disabled>Retry assessment explanation</button>
                     <p id="gemini-explanation-status" role="status"></p>
                     <p id="gemini-explanation-text"></p>
-                    <p class="muted">AI wording may be wrong. Follow the safe actions and stopping limits above. The downloaded summary contains verified guidance, not this AI wording.</p>
+                    <p class="muted">Follow the safe actions and stopping limits above. Your downloaded summary includes the verified guidance and sources.</p>
                 </aside>
                     <details id="diagnosis-details"><summary>Why this result? Other possible causes and confidence</summary>
                     <h4>Other possible causes</h4>
@@ -285,7 +283,7 @@
             </aside>
         </section>
         <button id="start-over-button" type="button" class="secondary">Start over</button>
-        <footer><p>Photo recognition runs on the Repera server without saving uploads. Uploads pass through the website hosting provider. When configured, Gemini generates assessment responses using the photo, description and questionnaire information sent to Google. Support notes and recycling location are not included. Electrical, motor, and battery repairs belong with qualified support.</p><button id="privacy-open" type="button" class="secondary">Privacy notice</button></footer>
+        <footer><p>Photos are processed without being saved. Gemini receives your answers and any photo or description you provide. Support notes and recycling location are not included. Electrical, motor and battery repairs require qualified support.</p><button id="privacy-open" type="button" class="secondary">Privacy notice</button></footer>
         </div>
         <noscript><p class="notice">Enable JavaScript to enter Repera, preview photos, and use the manual troubleshooting flow.</p></noscript>
     </main>
