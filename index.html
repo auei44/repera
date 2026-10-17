@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<!-- Set the page title, mobile sizing, and local stylesheet. -->
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Repera — Vacuum troubleshooting</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- A decorative curtain connects the introduction to the working app. -->
+    <div class="transition-curtain" aria-hidden="true"><span>Repera</span></div>
+    <main>
+        <!-- Introduce the environmental purpose before the existing vacuum tools. -->
+        <nav class="site-nav" aria-label="Main navigation">
+            <a class="brand" id="home-link" href="#welcome-screen" aria-label="Repera home">Repera</a>
+            <a href="#vacuum-tools">Start troubleshooting</a>
+        </nav>
+        <div id="welcome-screen">
+        <section class="earth-intro" aria-labelledby="intro-title">
+            <div class="intro-copy">
+                
+                <p class="intro-kicker">Repair first. Waste less.</p>
+                <h1 id="intro-title"><span>Before you</span><span>replace it.</span></h1>
+                <p class="intro-text">Give your vacuum a longer life. Work through the problem, find a safe next step, and explore repair before replacement.</p>
+                <p class="mission-copy">Less waste starts with keeping useful things in use. In 2022, the world generated 62 million tonnes of e-waste; only 22.3% was documented as formally collected and recycled.</p>
+                <a class="button-link" href="#vacuum-tools">Start troubleshooting</a>
+                <p class="entry-note">No account needed. Guidance for supported vacuum models.</p>
+                <p class="intro-source">2022 data · <a href="https://www.itu.int/en/ITU-D/Environment/Pages/Publications/The-Global-E-waste-Monitor-2024.aspx" target="_blank" rel="noopener noreferrer">ITU / UNITAR, Global E-waste Monitor 2024</a></p>
+            </div>
+            <div class="earth-panel">
+                <p class="globe-caption" id="globe-caption">Red areas illustrate the global e-waste problem.</p>
+                <p class="map-note">Illustrative positions, not mapped dumping sites or measured amounts.</p>
+                <canvas id="waste-globe" width="640" height="640" role="img" aria-describedby="globe-caption" aria-label="Rotating Earth with natural-color land, oceans and ice. Red markers illustrate the global e-waste problem; positions and sizes do not identify actual waste sites or amounts."></canvas>
+                <div class="earth-heading"><a class="map-note" href="https://ewastemonitor.info/wp-content/uploads/2024/03/GEM_2024_18-03_web_executive-Summery.pdf" target="_blank" rel="noopener noreferrer">2022 regional data: ITU / UNITAR</a><button id="globe-motion" class="secondary" type="button" aria-pressed="false">Pause rotation</button></div>
+                <p class="map-note">Earth imagery: <a href="https://science.nasa.gov/earth/earth-observatory/the-blue-marble-true-color-global-imagery-at-1km-resolution/" target="_blank" rel="noopener noreferrer">NASA Blue Marble</a> (historical composite).</p>
+            </div>
+        </section>
+        <!-- Explain the actual workflow before someone enters, without promising a repair. -->
+        <ol class="how-it-works" aria-label="How Repera works">
+            <li><span>01</span><div><h2>Choose your vacuum</h2><p>Match its model label or start with a photo suggestion.</p></div></li>
+            <li><span>02</span><div><h2>Describe what happens</h2><p>One question at a time. Not sure is always an option.</p></div></li>
+            <li><span>03</span><div><h2>Review your next step</h2><p>See possible causes, safety limits, and the original sources.</p></div></li>
+        </ol>
+        <!-- This notice describes actual behavior; it does not request tracking consent. -->
+        <aside id="privacy-notice" class="privacy-notice" aria-labelledby="privacy-title">
+            <div><h2 id="privacy-title">Cookies &amp; privacy</h2><p>No tracking cookies or analytics. Photo recognition processes uploads on the Repera server without saving them. Shared links pass requests and photos through Cloudflare. When Gemini is configured, photo identification sends your photo to Google. Finishing the questions sends your answers, plus any photo and description you provided, to generate the final explanation. Google may use free-tier content to improve its products.</p></div>
+            <button id="privacy-dismiss" type="button" class="secondary">Got it — enter Repera</button>
+        </aside>
+        </div>
+        <!-- The welcome screen opens first; entering reveals the existing tools. -->
+        <div id="app-screen" hidden>
+        <!-- Show the current stage without pretending the branching path has a fixed length. -->
+        <ol class="flow-steps" aria-label="Troubleshooting stages">
+            <li id="stage-model" aria-current="step"><span>1</span> Vacuum</li>
+            <li id="stage-questions"><span>2</span> Questions</li>
+            <li id="stage-result"><span>3</span> Result</li>
+        </ol>
+        <header id="vacuum-tools" class="page-header" tabindex="-1">
+            
+            <h2>Vacuum troubleshooting</h2>
+            <p>Add a photo or choose your model. We’ll help you work out what to check next.</p>
+            <p id="recognition-status" class="muted" role="status">Manual guidance is available. Local photo recognition requires the Repera server.</p>
+            <details id="model-coverage" hidden>
+                <summary>Which vacuums can it recognize?</summary>
+                <p id="model-coverage-note" class="muted"></p>
+                <ul id="model-coverage-list"></ul>
+            </details>
+        </header>
+
+        <!-- Choose a local photo or use the rear camera on supported phones. -->
+        <section id="vacuum-selection" class="card" aria-labelledby="selection-title">
+            <h2 id="selection-title">Your vacuum</h2>
+            <div class="selection-grid">
+                <div class="photo-column">
+                    <label class="upload-area" for="vacuum-photo">
+                        <strong>Choose a vacuum photo</strong>
+                        <span id="upload-filename">Browse your files or take a photo</span>
+                        <span class="upload-limit">Optional &middot; up to 8 MB</span>
+                        <input id="vacuum-photo" type="file" accept="image/*" capture="environment" aria-describedby="photo-help photo-error">
+                    </label>
+                    <p id="photo-help" class="muted">Use a clear photo of the whole vacuum. Confirm any suggested model against its label.</p>
+                    <p id="photo-error" role="alert"></p>
+                    <img id="photo-preview" alt="Vacuum photo preview" hidden>
+                    <button id="clear-photo-button" class="secondary" type="button" hidden>Remove photo</button>
+                    <aside id="gemini-photo-panel" class="gemini-panel" hidden aria-labelledby="gemini-photo-title">
+                        <h3 id="gemini-photo-title">Model check</h3>
+                        <p id="gemini-setup-status" role="status">Gemini needs the local server and a server-side API key. Local recognition still works without it.</p>
+                        <p>Your label confirmation determines which model guidance is used.</p>
+                        <button id="gemini-photo-button" type="button" class="secondary" hidden disabled>Send photo to Gemini</button>
+                        <div id="gemini-photo-result" role="status"></div>
+                        <div id="gemini-model-confirmation"></div>
+                    </aside>
+                </div>
+                <div class="model-column">
+                    <label for="model-select">Or choose the model on its label</label>
+                    <select id="model-select" aria-describedby="model-help input-error">
+                        <option value="">Choose a model</option>
+                    </select>
+                    <p id="model-help" class="muted">A manual selection takes priority over a photo.</p>
+                    <label for="problem-description">What happened? <span class="muted">(optional)</span></label>
+                    <textarea id="problem-description" maxlength="1000" rows="3" placeholder="For example: it stopped picking up dirt yesterday."></textarea>
+                    <p class="field-note">Use what you have already observed. Do not run or dismantle a damaged vacuum for a photo.</p>
+                </div>
+            </div>
+            <div class="selection-actions">
+                <div id="journey-consent-panel">
+                    <p><strong>Before you continue</strong></p>
+                    <p class="muted">When Gemini is connected, photo identification sends your photo to Google. Finishing the questions sends your answers, plus any photo and description you provided, for an assessment. Google may use free-tier content to improve products. Leave out personal information.</p>
+                </div>
+                <div class="intake-buttons"><button id="identify-button" type="button">Identify vacuum</button><button id="resume-diagnosis-button" type="button" class="secondary" hidden>Return to current assessment</button></div>
+            </div>
+            <p id="input-error" role="alert"></p>
+            <div id="result" hidden aria-live="polite">
+                <h3>Your model</h3>
+                <p id="model-result" tabindex="-1"></p>
+                <p id="model-availability" role="status"></p>
+                <p id="photo-comparison" role="status" hidden></p>
+                <div id="unsupported-sources"></div>
+                <div id="photo-suggestion" hidden>
+                    <p id="photo-model-notice"></p>
+                    <div id="photo-confirmations" role="group" aria-label="Confirm the model on your vacuum label"></div>
+                </div>
+            </div>
+            <details class="archived-models">
+                <summary id="recognition-only-title">Recognition only: verified guidance unavailable</summary>
+                <ul id="recognition-only-models"></ul>
+                <p>These models do not have verified diagnostic guidance. A photo suggestion cannot start a questionnaire.</p>
+            </details>
+        </section>
+
+        <!-- Start a guided diagnosis without asking the user to name the problem. -->
+        <section id="troubleshooting" class="card" hidden aria-labelledby="troubleshooting-title">
+            <h2 id="troubleshooting-title">Guided diagnosis</h2>
+            <p id="selected-model" class="model-name"></p>
+            <button id="change-model-button" type="button" class="secondary">Change vacuum</button>
+            <p id="model-note" class="notice" hidden></p>
+            <p class="observation-note">Use observations from normal use. Do not turn the vacuum on or take it apart to answer. Choose Not sure whenever you cannot tell.</p>
+            <p class="muted">Results describe likely causes, not certain diagnoses. No part compatibility is inferred.</p>
+            <button id="start-diagnosis-button" type="button">Start diagnosis</button>
+
+            <!-- Keep just one question visible and announce progress to screen readers. -->
+            <div id="question-panel" hidden>
+                <div class="workflow-heading">
+                    <p>Based on your observations</p>
+                    <p id="question-progress" class="progress" role="status"></p>
+                </div>
+                <div id="question-content" aria-live="polite">
+                    <p id="node-status" class="eyebrow"></p>
+                    <h3 id="question-text" tabindex="-1"></h3>
+                    <p id="node-note"></p>
+                    <p id="question-hint" class="muted" hidden></p>
+                </div>
+                <div id="answer-buttons" role="group" aria-labelledby="question-text">
+                    <button type="button" data-answer="Yes">Yes</button>
+                    <button type="button" data-answer="No">No</button>
+                    <button type="button" data-answer="Not sure" class="secondary">Not sure</button>
+                </div>
+
+                <!-- Review earlier observations without starting the whole questionnaire again. -->
+                <details id="answer-review" hidden>
+                    <summary>Review earlier answers</summary>
+                    <p class="muted">Changing an answer removes it and all later answers so the result can be recalculated.</p>
+                    <ol id="review-list"></ol>
+                </details>
+
+                <!-- Explain the conclusion, uncertainty, safe action, and stopping point. -->
+                <div id="assessment" hidden>
+                <section id="diagnosis-result" hidden aria-label="Diagnostic conclusion">
+                    <p id="result-disposition" class="notice"></p>
+                    <h4>Most likely cause</h4>
+                    <p id="likely-cause"></p>
+                    <p><strong>Confidence level: <span id="confidence-level"></span></strong></p>
+                    <p id="verification-note" class="notice" hidden></p>
+                    <p id="verification-detail" hidden></p>
+                    <div id="instructions">
+                        <h4>The next safe action to try</h4>
+                        <ol id="instruction-list"></ol>
+                    </div>
+                    <h4>When to stop and contact qualified support</h4>
+                    <p id="support-stop"></p>
+                    <p id="manufacturer-contact"></p>
+                <aside id="gemini-explanation-panel" class="gemini-panel" hidden aria-labelledby="gemini-explanation-title">
+                    <h3 id="gemini-explanation-title">Your assessment explained</h3>
+                    <p>Gemini explains your answers using the verified guidance, with your photo and description when provided.</p>
+                    <button id="gemini-explain-button" type="button" class="secondary" disabled>Retry assessment explanation</button>
+                    <p id="gemini-explanation-status" role="status"></p>
+                    <p id="gemini-explanation-text"></p>
+                    <p class="muted">AI wording may be wrong. Follow the safe actions and stopping limits above. The downloaded summary contains verified guidance, not this AI wording.</p>
+                </aside>
+                    <details id="diagnosis-details"><summary>Why this result? Other possible causes and confidence</summary>
+                    <h4>Other possible causes</h4>
+                    <ul id="other-causes"></ul>
+                    <h4>Why Repera reached this conclusion</h4>
+                    <p id="diagnosis-reason"></p>
+                    <p id="confidence-reason" class="muted"></p>
+                    </details>
+                </section>
+
+                <!-- Evidence determines the repair route; AI cannot declare a vacuum beyond repair. -->
+                <section id="repair-plan" hidden aria-labelledby="repair-plan-title">
+                    <h3 id="repair-plan-title">Repair and recycling</h3>
+                    <p id="repair-route" class="notice"></p>
+                    <p id="repair-route-detail"></p>
+                    <h4>Parts and repair help</h4>
+                    <p id="parts-decision"></p>
+                    <p>Before authorizing a repair, ask the manufacturer or repairer to confirm the fault, exact model/type, compatible part number, full quote and warranty coverage. Repera does not estimate repair costs from a photo.</p>
+                    <details id="parts-options">
+                        <summary>Find replacement parts</summary>
+                        <p id="parts-context"></p>
+                        <ul id="parts-list"></ul>
+                        <p id="parts-source"></p>
+                        <p id="parts-support"></p>
+                    </details>
+                    <label for="repair-decision">What would you like to do next?</label>
+                    <select id="repair-decision">
+                        <option value="">Keep exploring repair</option>
+                        <option value="assessed">A qualified repairer advised against repair</option>
+                        <option value="recycle">I want to explore recycling</option>
+                    </select>
+                    <p id="repair-decision-note" role="status"></p>
+                    <details id="recycling-options">
+                        <summary>If repair is not practical: responsible recycling</summary>
+                        <p>A photo does not prove that a vacuum is beyond repair. Consider a qualified repair assessment before disposal. Recycling recovers materials; it does not eliminate all environmental impact.</p>
+                        <label for="recycling-country">Where will you recycle it?</label>
+                        <select id="recycling-country"><option value="">Choose your country</option><option value="US">United States</option><option value="UK">United Kingdom</option><option value="other">Another country</option></select>
+                        <div id="recycling-guidance" aria-live="polite"></div>
+                        <p id="battery-disposal-note"></p>
+                        <h4>Find a recycling place nearby</h4>
+                        <p id="recycling-location-help">Share your location once, or enter a city or postcode. No ongoing tracking. Repera keeps it only in this tab, excludes it from Gemini and saved summaries, and clears it when the assessment changes. Opening the search link shares that location with Google Maps.</p>
+                        <label for="recycling-location">City or postcode, and country</label>
+                        <input id="recycling-location" type="text" maxlength="120" autocomplete="off" aria-describedby="recycling-location-help">
+                        <div class="recycling-actions">
+                            <button id="recycling-search" type="button">Prepare recycling search</button>
+                            <button id="recycling-locate" type="button" class="secondary">Use my location once</button>
+                            <button id="recycling-clear" type="button" class="secondary">Clear location</button>
+                        </div>
+                        <p id="recycling-location-status" role="status"></p>
+                        <p id="recycling-nearby" hidden></p>
+                        <p class="muted">Search results are not verified collection sites. Call ahead to confirm they accept your complete vacuum and any battery, plus fees and opening hours. For a damaged battery, ask about safe handling before transporting it.</p>
+                    </details>
+                </section>
+
+                <!-- AI wording supplements the original result; it never replaces safety guidance. -->
+
+                <!-- Preserve answers and sources for a useful support conversation. -->
+                <section id="summary" hidden aria-labelledby="summary-title">
+                    <h4 id="summary-title">Save or share this assessment</h4>
+                    <details><summary>Your recorded answers</summary><ol id="answer-summary"></ol></details>
+                    <!-- Optional notes belong to the support handoff, not the diagnosis engine. -->
+                    <label for="support-notes">Anything else to tell support? (optional)</label>
+                    <textarea id="support-notes" maxlength="1500" rows="3" aria-describedby="support-notes-help"></textarea>
+                    <p id="support-notes-help" class="muted">For example: when it started, the light pattern, or what you already tried. These notes stay in this tab and are included only when you copy or download the summary. They do not change the diagnosis. Avoid personal information.</p>
+                    <label for="action-outcome">If you already followed a listed safe action, what happened?</label>
+                    <select id="action-outcome">
+                        <option value="">Not tried / not applicable</option>
+                        <option>It seems improved</option>
+                        <option>The problem remains</option>
+                        <option>Not sure</option>
+                    </select>
+                    <p id="outcome-note" role="status"></p>
+                    <p class="muted">For support, have your model label, these observations and the summary ready. Do not operate or dismantle the vacuum to collect more information.</p>
+                    <button id="copy-summary-button" type="button" class="secondary">Copy summary</button>
+                    <div id="copy-fallback" hidden>
+                        <label for="summary-copy-text">Select and copy your summary</label>
+                        <textarea id="summary-copy-text" rows="8" readonly></textarea>
+                    </div>
+                    <!-- Save only this diagnosis and its sources as a local text file. -->
+                    <button id="download-summary-button" type="button" class="secondary">Download summary</button>
+                    <p id="summary-download-status" role="status"></p>
+                </section>
+                </div>
+                <div class="workflow-actions">
+                    <button id="back-button" type="button" class="secondary" disabled>Back</button>
+                    <button id="restart-button" type="button" class="secondary">Restart diagnosis</button>
+                    <button id="stop-button" type="button" class="danger">Stop for safety</button>
+                </div>
+            </div>
+
+            <!-- Link official sources instead of storing manufacturer manuals. -->
+            <aside class="sources" aria-labelledby="sources-title">
+                <h3 id="sources-title">Official sources</h3>
+                <p class="muted">Follow the exact model scope and safety limits in each linked source. Some original manuals are hosted in archives. External links open a new tab.</p>
+                <ul id="source-list"></ul>
+            </aside>
+        </section>
+        <button id="start-over-button" type="button" class="secondary">Start over</button>
+        <footer><p>Photo recognition runs on the Repera server without saving uploads. Uploads pass through the website hosting provider. When configured, Gemini generates assessment responses using the photo, description and questionnaire information sent to Google. Support notes and recycling location are not included. Electrical, motor, and battery repairs belong with qualified support.</p><button id="privacy-open" type="button" class="secondary">Privacy notice</button></footer>
+        </div>
+        <noscript><p class="notice">Enable JavaScript to enter Repera, preview photos, and use the manual troubleshooting flow.</p></noscript>
+    </main>
+
+    <!-- Load the organized data before the code that displays it. -->
+    <script src="troubleshooting-data.js"></script>
+    <script src="app.js"></script>
+    <script src="parts-data.js"></script>
+    <script src="repair-options.js"></script>
+    <script src="gemini.js"></script>
+    <script src="globe-land.js"></script>
+    <script src="globe-texture.js"></script>
+    <script src="landing.js"></script>
+</body>
+</html>
