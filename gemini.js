@@ -21,12 +21,17 @@
     }
     function refresh() {
         photoButton.disabled = !service || !photoReady || !!controller || checkingPhoto;
-        photoButton.hidden = !photoAttempted;
-        photoButton.textContent = "Retry Gemini check";
-        if (checkingPhoto) { identifyButton.disabled = true; identifyButton.textContent = "Checking photo…"; }
+        photoButton.hidden = true;
+        photoButton.textContent = checkingPhoto || photoButton.hasAttribute("aria-busy") ? "Identifying..." : "Retry identification";
+        if (checkingPhoto) { identifyButton.disabled = true; identifyButton.textContent = "Identifying..."; }
+        else if (photoAttempted && photoReady && !modelSelect.value) identifyButton.textContent = "Retry identification";
         for (const button of [...photoConfirmations.children, ...confirmation.children]) button.disabled = checkingPhoto;
         const eligible = currentDiagnosis();
-        panel.hidden = !eligible;
+        panel.hidden = !eligible || eligible.status === "safety";
+        if (eligible && panel.dataset.status !== eligible.status) {
+            panel.open = eligible.status !== "safety";
+            panel.dataset.status = eligible.status;
+        }
         getElement("gemini-photo-panel").hidden = !service;
         explainButton.disabled = !service || !eligible || !!controller;
         if (eligible && !service) explainStatus.textContent = "Gemini is unavailable. No AI response was generated. The verified guidance above remains available.";
@@ -63,7 +68,7 @@
         controller = requestController;
         const timeout = setTimeout(() => requestController.abort(), 45000);
         button.setAttribute("aria-busy", "true");
-        status.textContent = "Waiting for Gemini...";
+        status.textContent = button === photoButton ? "" : "Waiting for Gemini...";
         refresh();
         try {
             const response = await fetch(endpoint, { method: "POST", body, signal: requestController.signal,
@@ -103,7 +108,7 @@
                 photoResult.textContent = "Gemini could not suggest a supported model reliably. Read the vacuum's label and select it manually.";
                 return;
             }
-            photoResult.textContent = "Gemini's possible match: " + model.name + ". This is a second opinion, not verification. ";
+            photoResult.textContent = "Most likely match: " + model.name + ". ";
             if (modelSelect.value && modelSelect.value !== result.model_id) {
                 photoResult.append("This differs from your selection; your selected model has not been changed. ");
             }
@@ -117,7 +122,7 @@
             }
             const button = document.createElement("button");
             button.type = "button";
-            button.textContent = "My vacuum's label matches " + model.name;
+            button.textContent = "Confirm";
             button.addEventListener("click", () => { showModelIdentity(result.model_id, true); startDiagnosis(); });
             button.disabled = checkingPhoto;
             confirmation.appendChild(button);
@@ -169,7 +174,7 @@
             if (stamp !== version) return;
             checkingPhoto = false;
             identifyButton.disabled = false;
-            identifyButton.textContent = "Identify vacuum";
+            identifyButton.textContent = "Retry identification";
             identifyButton.removeAttribute("aria-busy");
             compareMatches();
             refresh();

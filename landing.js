@@ -152,12 +152,14 @@
     /* Switch screens without saving consent or clearing an in-progress diagnosis. */
     const welcome = document.getElementById("welcome-screen");
     const app = document.getElementById("app-screen");
-    let entering = false;
+    let entering = false, finishTimer = null, curtainTimer = null;
+    history.replaceState({ ...history.state, reperaScreen: "welcome" }, "");
     const curtain = document.querySelector(".transition-curtain");
-    function enter(event) {
+    function enter(event, fromHistory = false) {
         if (event) event.preventDefault();
         if (entering) return;
         if (welcome.hidden) { document.getElementById("vacuum-tools").focus(); return; }
+        if (!fromHistory) history.pushState({ reperaScreen: "app" }, "");
         entering = true;
         welcome.classList.add("leaving");
         if (!reducedMotion.matches) curtain.classList.add("active");
@@ -174,18 +176,28 @@
         // Skip the transition if the visitor prefers less motion.
         if (reducedMotion.matches) finish();
         else {
-            setTimeout(finish, 520);
-            setTimeout(() => { curtain.classList.remove("active"); entering = false; }, 1100);
+            finishTimer = setTimeout(finish, 520);
+            curtainTimer = setTimeout(() => { curtain.classList.remove("active"); entering = false; }, 1100);
         }
     }
     document.querySelectorAll('a[href="#vacuum-tools"]').forEach(link => link.addEventListener("click", enter));
     function showWelcome(event) {
-        event.preventDefault();
+        event?.preventDefault();
         if (entering) return;
+        if (event && !app.hidden) history.pushState({ reperaScreen: "welcome" }, "");
         app.hidden = true;
         welcome.hidden = false;
         window.scrollTo(0, 0);
         document.getElementById("home-link").focus();
     }
+    window.addEventListener("popstate", event => {
+        // Back can arrive before the transition timers finish.
+        clearTimeout(finishTimer); clearTimeout(curtainTimer);
+        entering = false;
+        curtain.classList.remove("active");
+        welcome.classList.remove("leaving");
+        if (event.state?.reperaScreen === "app") enter(null, true);
+        else showWelcome();
+    });
     document.getElementById("home-link").addEventListener("click", showWelcome);
 })();

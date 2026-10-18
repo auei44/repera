@@ -141,7 +141,7 @@ summary { cursor: pointer; min-height: 44px; padding: 10px 0; }
 #answer-buttons button:hover { border-color: var(--ink); background: var(--surface); }
 #diagnosis-result, #summary, .sources { margin-top: 36px; padding-top: 28px; border-top: 1px solid var(--line); }
 #diagnosis-result p, #diagnosis-result li { max-width: 70ch; }
-#likely-cause { font-size: 18px; line-height: 1.65; letter-spacing: -.02em; margin: 16px 0 24px; }
+#likely-cause { font-size: 18px; line-height: 1.65; letter-spacing: -.02em; margin: 0 0 24px; }
 #confidence-level { text-transform: capitalize; font-size: 16px; font-weight: 500; }
 .notice { font-weight: 600; }
 #support-stop { border-left: 2px solid var(--ink); padding-left: 16px; }
@@ -274,9 +274,8 @@ footer p { max-width: 110ch; }
 #app-screen #stop-button { background: var(--surface); color: var(--ink); border-color: var(--ink); }
 #app-screen #stop-button:hover { background: var(--surface); }
 #app-screen #recognition-status, #app-screen #gemini-setup-status { display: none; }
-#app-screen[data-stage="questions"] .observation-note,
 #app-screen[data-stage="questions"] #troubleshooting > .muted,
-#app-screen #question-content:has(#question-hint:not([hidden])) #node-note { display: none; }
+#app-screen[data-stage="questions"] #node-note { display: none; }
 #app-screen footer { margin-top: 36px; padding-top: 24px; line-height: 1.7; }
 #app-screen footer p { max-width: 70ch; }
 @media (max-width: 680px) {
@@ -302,3 +301,18 @@ input::placeholder, textarea::placeholder { color: var(--ink); opacity: 1; }
 .privacy-details { flex: 1; min-width: 0; }
 .privacy-details summary { font-size: 16px; }
 .privacy-details[open] summary { margin-bottom: 8px; }
+
+#gemini-photo-result:not(:empty) { font-size: 21px; line-height: 1.4; font-weight: 600; margin: 12px 0 16px; }
+
+#gemini-photo-title { font-size: 20px; }
+
+#gemini-model-confirmation button { width: 90%; min-height: 56px; padding: 14px 20px; margin: 8px 0 0; font-size: 18px; font-weight: 600; }
+
+#vacuum-selection:has(#gemini-model-confirmation button) #result:not(:has(#photo-confirmations button)) { display: none; }
+
+#vacuum-selection:has(#identify-button:disabled) #result { display: none; }
+
+#app-screen .cause-label { margin: 28px 0 4px; }
+
+#question-panel[data-status="safety"] #diagnosis-result { margin-top: 8px; padding-top: 0; border-top: 0; }
+#question-panel[data-status="safety"] #result-disposition { margin: 0 0 28px; }

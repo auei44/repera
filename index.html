@@ -84,10 +84,9 @@
                     <aside id="gemini-photo-panel" class="gemini-panel" hidden aria-labelledby="gemini-photo-title">
                         <h3 id="gemini-photo-title">Model check</h3>
                         <p id="gemini-setup-status" role="status"></p>
-                        <p>Your label confirmation determines which model guidance is used.</p>
-                        <button id="gemini-photo-button" type="button" class="secondary" hidden disabled>Send photo to Gemini</button>
                         <div id="gemini-photo-result" role="status"></div>
                         <div id="gemini-model-confirmation"></div>
+                        <button id="gemini-photo-button" type="button" class="secondary" hidden disabled>Retry identification</button>
                     </aside>
                 </div>
                 <div class="model-column">
@@ -95,7 +94,7 @@
                     <select id="model-select" aria-describedby="model-help input-error">
                         <option value="">Choose a model</option>
                     </select>
-                    <p id="model-help" class="muted">A manual selection takes priority over a photo.</p>
+                    <p id="model-help" class="muted">Manual selection takes priority over a photo.</p>
                     <label for="problem-description">What happened? <span class="muted">(optional)</span></label>
                     <textarea id="problem-description" maxlength="1000" rows="3" placeholder="For example: it stopped picking up dirt yesterday."></textarea>
                     <p class="field-note">Use what you have already observed. Do not run or dismantle a damaged vacuum for a photo.</p>
@@ -133,7 +132,7 @@
             <p id="selected-model" class="model-name"></p>
             <button id="change-model-button" type="button" class="secondary">Change vacuum</button>
             <p id="model-note" class="notice" hidden></p>
-            <p class="observation-note">Use observations from normal use. Do not turn the vacuum on or take it apart to answer. Choose Not sure whenever you cannot tell.</p>
+            <details class="observation-note"><summary>Before you answer</summary><p>Use observations from normal use. Do not turn the vacuum on, touch moving parts or take it apart to answer. Choose Not sure whenever you cannot tell.</p></details>
             <p class="muted">Results describe likely causes, not certain diagnoses. No part compatibility is inferred.</p>
             <button id="start-diagnosis-button" type="button">Start diagnosis</button>
 
@@ -157,36 +156,40 @@
 
                 <!-- Review earlier observations without starting the whole questionnaire again. -->
                 <details id="answer-review" hidden>
-                    <summary>Review earlier answers</summary>
+                    <summary>Review answers and options</summary>
                     <p class="muted">Changing an answer removes it and all later answers so the result can be recalculated.</p>
                     <ol id="review-list"></ol>
+                <div class="workflow-actions">
+                    <button id="back-button" type="button" class="secondary" disabled>Back</button>
+                    <button id="restart-button" type="button" class="secondary">Restart diagnosis</button>
+                    <button id="stop-button" type="button" class="danger">Stop for safety</button>
+                </div>
                 </details>
 
                 <!-- Explain the conclusion, uncertainty, safe action, and stopping point. -->
                 <div id="assessment" hidden>
                 <section id="diagnosis-result" hidden aria-label="Diagnostic conclusion">
                     <p id="result-disposition" class="notice"></p>
-                    <h4>Most likely cause</h4>
+                    <h4 class="cause-label">Most likely cause:</h4>
                     <p id="likely-cause"></p>
-                    <p><strong>Confidence level: <span id="confidence-level"></span></strong></p>
+                    <p hidden><span id="confidence-level"></span></p>
                     <p id="verification-note" class="notice" hidden></p>
                     <p id="verification-detail" hidden></p>
                     <div id="instructions">
                         <h4>The next safe action to try</h4>
                         <ol id="instruction-list"></ol>
                     </div>
-                    <h4>When to stop and contact qualified support</h4>
+                    <h4 id="support-stop-title">When to stop and contact qualified support</h4>
                     <p id="support-stop"></p>
                     <p id="manufacturer-contact"></p>
-                <aside id="gemini-explanation-panel" class="gemini-panel" hidden aria-labelledby="gemini-explanation-title">
-                    <h3 id="gemini-explanation-title">Your assessment explained</h3>
-                    <p>An explanation of your answers and any photo or description, based on the guidance above.</p>
+                <details id="gemini-explanation-panel" class="gemini-panel" hidden aria-labelledby="gemini-explanation-title">
+                    <summary><span id="gemini-explanation-title">More about this assessment</span></summary>
                     <button id="gemini-explain-button" type="button" class="secondary" disabled>Retry assessment explanation</button>
                     <p id="gemini-explanation-status" role="status"></p>
                     <p id="gemini-explanation-text"></p>
                     <p class="muted">Follow the safe actions and stopping limits above. Your downloaded summary includes the verified guidance and sources.</p>
-                </aside>
-                    <details id="diagnosis-details"><summary>Why this result? Other possible causes and confidence</summary>
+                </details>
+                    <details id="diagnosis-details" hidden><summary>Why this result? Other possible causes and confidence</summary>
                     <h4>Other possible causes</h4>
                     <ul id="other-causes"></ul>
                     <h4>Why Repera reached this conclusion</h4>
@@ -248,7 +251,7 @@
                     <!-- Optional notes belong to the support handoff, not the diagnosis engine. -->
                     <label for="support-notes">Anything else to tell support? (optional)</label>
                     <textarea id="support-notes" maxlength="1500" rows="3" aria-describedby="support-notes-help"></textarea>
-                    <p id="support-notes-help" class="muted">For example: when it started, the light pattern, or what you already tried. These notes stay in this tab and are included only when you copy or download the summary. They do not change the diagnosis. Avoid personal information.</p>
+                    <p id="support-notes-help" class="muted">For example: when it started, the light pattern, or what you already tried. These notes are included in your downloaded or copied summary to give a technician or repair professional more information. They do not change the diagnosis.</p>
                     <label for="action-outcome">If you already followed a listed safe action, what happened?</label>
                     <select id="action-outcome">
                         <option value="">Not tried / not applicable</option>
@@ -268,11 +271,6 @@
                     <p id="summary-download-status" role="status"></p>
                 </section>
                 </div>
-                <div class="workflow-actions">
-                    <button id="back-button" type="button" class="secondary" disabled>Back</button>
-                    <button id="restart-button" type="button" class="secondary">Restart diagnosis</button>
-                    <button id="stop-button" type="button" class="danger">Stop for safety</button>
-                </div>
             </div>
 
             <!-- Link official sources instead of storing manufacturer manuals. -->
@@ -282,7 +280,7 @@
                 <ul id="source-list"></ul>
             </aside>
         </section>
-        <button id="start-over-button" type="button" class="secondary">Start over</button>
+        <button id="start-over-button" type="button" class="secondary">Go back to identification</button>
         <footer><p>Electrical, motor and battery repairs require qualified support.</p></footer>
         </div>
         <noscript><p class="notice">Enable JavaScript to enter Repera, preview photos, and use the manual troubleshooting flow.</p></noscript>

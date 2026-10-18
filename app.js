@@ -367,7 +367,7 @@ function remainingQuestions(id) {
 
 // Display all conclusion fields and cite the source of each model-specific action.
 function showDiagnosis(diagnosis) {
-    getElement("result-disposition").textContent = diagnosis.status === "safety" ? "Stop: qualified assessment needed" :
+    getElement("result-disposition").textContent = diagnosis.status === "safety" ? "Qualified assessment needed" :
         diagnosis.status === "pending" ? "Guidance limited: contact manufacturer support" :
         diagnosis.kind === "noIssue" ? "No fault isolated from these observations" : "A possible explanation, not a confirmed repair";
     getElement("verification-detail").hidden = !diagnosis.verificationDetail;
@@ -389,6 +389,9 @@ function showDiagnosis(diagnosis) {
     getElement("verification-note").hidden = !diagnosis.verification;
     getElement("verification-note").textContent = diagnosis.verification;
     getElement("support-stop").textContent = diagnosis.stop;
+    const repeatedStop = diagnosis.actions.some(action => action.text.trim() === diagnosis.stop.trim());
+    getElement("support-stop").hidden = repeatedStop;
+    getElement("support-stop-title").hidden = repeatedStop;
     const steps = getElement("instruction-list");
     steps.replaceChildren();
     diagnosis.actions.forEach(function (action) {
@@ -413,7 +416,9 @@ function showNode() {
     const finished = node.type === "result";
     questionPanel.dataset.node = currentNodeId;
     answerButtons.hidden = finished;
-    getElement("question-hint").hidden = finished || !node.hint;
+    const generalHint = node.hint === DIAGNOSIS_POLICY.observation ||
+        node.hint === "Answer from what you already observed. Do not run or dismantle the robot to answer.";
+    getElement("question-hint").hidden = finished || !node.hint || generalHint;
     getElement("question-hint").textContent = finished ? "" : (node.hint || "");
     getElement("diagnosis-result").hidden = !finished;
     getElement("summary").hidden = !finished;
@@ -620,7 +625,7 @@ function clearHandoff() {
 function renderAnswerReview() {
     const list = getElement("review-list");
     list.replaceChildren();
-    getElement("answer-review").hidden = answers.length === 0;
+    getElement("answer-review").hidden = false;
     answers.forEach((answer, index) => {
         const item = document.createElement("li");
         const text = document.createElement("span");
