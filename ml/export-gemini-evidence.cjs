@@ -11,9 +11,9 @@ const catalog = vm.runInContext(`(() => {
     const models = {}, summaries = [], index = new Map();
     for (const [id, model] of Object.entries(TROUBLESHOOTING_MODELS)) {
         if (!canDiagnose(model)) continue;
-        const tree = buildDiagnosisTree(model), routes = {};
+        const tree = buildDiagnosisTree(model), canonicalTree = buildDiagnosisTree(model, false), routes = {};
         function visit(nodeId, history) {
-            const node = tree.nodes[nodeId];
+            const node = canonicalTree.nodes[nodeId];
             if (node.type === 'result') {
                 const diagnosis = getDiagnosis(model, node.kind, history);
                 const text = JSON.stringify(diagnosis);
@@ -26,7 +26,7 @@ const catalog = vm.runInContext(`(() => {
             }
         }
         visit(tree.start, []);
-        models[id] = {name: model.name, tree, routes};
+        models[id] = {name: model.name, tree, routes, route_format:"clarification_v1"};
     }
     return {models, summaries, identities: Object.fromEntries(Object.entries(TROUBLESHOOTING_MODELS).map(([id, model]) => [id, model.name]))};
 })()`, context);

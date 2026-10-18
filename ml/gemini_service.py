@@ -147,18 +147,31 @@ class GeminiService:
         answers = payload["answers"]
         if not model or not isinstance(answers, list) or len(answers) > 30 or any(a not in ("Yes", "No", "Not sure") for a in answers):
             raise GeminiError("This diagnosis is not available for Gemini explanation.", 400)
-        index = model["routes"].get("|".join(answers))
-        if index is None:
-            raise GeminiError("Finish the diagnostic questions first.", 400)
-        diagnosis = self.catalog["summaries"][index]
         if hashlib.sha256((ROOT / "troubleshooting-data.js").read_bytes()).hexdigest() != self.catalog["source_sha256"]:
             raise GeminiError("The evidence export is out of date. Regenerate it before using Gemini.", 503)
-        history = []
+        history, canonical, positions = [], [], {}
         node = model["tree"]["start"]
         for answer in answers:
             question = model["tree"]["nodes"][node]
+            if question["type"] != "question":
+                raise GeminiError("The answer history contains steps after the result.", 400)
             history.append({"question": question["text"], "answer": answer})
+            original = question.get("clarifies")
+            if original and model.get("route_format") == "clarification_v1":
+                position = positions.get(original)
+                if position is None or canonical[position] != "Not sure":
+                    raise GeminiError("Invalid clarification history.", 400)
+                canonical[position] = answer
+            else:
+                positions[node] = len(canonical)
+                canonical.append(answer)
             node = question["next"][answer]
+        if model["tree"]["nodes"][node]["type"] != "result":
+            raise GeminiError("Finish the diagnostic questions first.", 400)
+        index = model["routes"].get("|".join(canonical))
+        if index is None:
+            raise GeminiError("The diagnostic answer history is not available.", 400)
+        diagnosis = self.catalog["summaries"][index]
         context = {"model": model["name"], "answers": history, "diagnosis": diagnosis}
         context["user_description_unverified"] = description
         parts = [{"text": json.dumps(context)}]
