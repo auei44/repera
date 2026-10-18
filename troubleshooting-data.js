@@ -231,11 +231,22 @@ function canDiagnose(model) {
     return Boolean(model && model.diagnosticEnabled === true && model.supportedMvp === true);
 }
 
+function addDamageQuestions(nodes, question, model) {
+    nodes.damage.next.Yes = "damageElectrical";
+    const electrical = model.cordless
+        ? "Does the damage involve a cable, plug, battery, charger" + (model.family === "robot" && model.dock !== false ? ", dock" : "") + " or electrical housing?"
+        : "Does the damage involve the power cable, plug or electrical housing?";
+    nodes.damageElectrical = question(electrical, "safety", "damagePart", "safetyUncertain");
+    nodes.damagePart = question("Is a part cracked, broken, loose or missing?", "damageReview", "damageCosmetic", "damageReview");
+    nodes.damageCosmetic = question("Is it only surface scratches or scuffs, with no cracked, loose or missing parts?", "liquid", "damageReview", "damageReview");
+    nodes.damageReview = {type: "result", kind: "damageReview"};
+}
+
 // Every question has three explicit destinations. No answer is treated as a diagnosis.
 function buildDiagnosisTree(model) {
     if (!canDiagnose(model)) return null;
     if (model.family === "robot") return robotTree(model);
-    if (model.family === "miele") return mieleTree();
+    if (model.family === "miele") return mieleTree(model);
     const question = (text, yes, no, unsure) => ({ type: "question", text, next: { Yes: yes, No: no, "Not sure": unsure } });
     const result = kind => ({ type: "result", kind });
     const nextBrush = model.brush ? "brush" : "noise";
@@ -267,6 +278,7 @@ function buildDiagnosisTree(model) {
         chargeSwitch: question("Was the switch left ON while charging?", "chargeSetting", "powerIssue", "powerIssue")
     };
     ["safety", "safetyUncertain", "uncertain", "blocked", "cutoff", "fullBin", "dirtyFilter", "brushIssue", "noiseIssue", "whistleNoise", "grindingNoise", "indicator", "review", "powerIssue", "uncharged", "unplugged", "chargeSetting"].forEach(kind => { nodes[kind] = result(kind); });
+    addDamageQuestions(nodes, question, model);
     Object.entries(nodes).forEach(([id, node]) => {
         if (node.type === "question") node.hint = OBSERVATION_HINTS[id] || "";
     });
@@ -292,10 +304,23 @@ function getDiagnosis(model, kind, answers) {
         sources: model?.sources || [], verification: DIAGNOSIS_POLICY.pending
     };
     // A result caller cannot override a safety answer still present in the history.
-    const safetyIds = ["smell", "damage", "liquid", "smoke", "heat", "batteryDamage"];
+    const safetyIds = ["smell", "liquid", "smoke", "heat", "batteryDamage", "damageElectrical"];
+    const damageAnswer = id => answers.find(a => a.nodeId === id)?.answer;
+    const surfaceOnly = damageAnswer("damageElectrical") === "No" && damageAnswer("damagePart") === "No" && damageAnswer("damageCosmetic") === "Yes";
     if (answers.some(a => a.answer === "Stop")) kind = "manualStop";
     else if (answers.some(a => safetyIds.includes(a.nodeId) && a.answer === "Yes")) kind = "safety";
-    else if (answers.some(a => safetyIds.includes(a.nodeId) && a.answer === "Not sure")) kind = "safetyUncertain";
+    else if (answers.some(a => safetyIds.includes(a.nodeId) && a.answer === "Not sure") || damageAnswer("damage") === "Not sure") kind = "safetyUncertain";
+    else if (damageAnswer("damage") === "Yes" && !surfaceOnly) kind = damageAnswer("damageElectrical") === "No" ? "damageReview" : "safety";
+    if (kind === "damageReview") return {
+        kind, status: "pending", likely: "A visibly damaged part needs assessment; these answers do not establish the failed part or a suitable replacement.",
+        others: ["Other causes have not been established."],
+        reason: "You reported visible damage without identifying damage to electrical or charging components. The follow-up answers did not establish that it is only surface wear.",
+        confidence: "low", confidenceReason: "The extent of damage has not been inspected.",
+        actions: [{text: "Do not attempt an unverified repair. Contact the manufacturer or a qualified repair professional with a photo of the damaged area and the exact model. Ask them to assess the damage and confirm the appropriate next step before using or replacing the damaged part. Do not dismantle the vacuum to investigate.", source: model.support}],
+        stop: "Do not use damaged components. If you notice exposed wiring, battery damage, unusual heat, smoke or a burning smell, stop using and charging the vacuum and seek qualified support.",
+        sources: [...new Set([...model.sources, model.support])].filter(Boolean), verification: DIAGNOSIS_POLICY.pending,
+        verificationDetail: "The damaged part, appropriate repair procedure and exact replacement compatibility have not been verified."
+    };
     if (model.family === "robot") return robotDiagnosis(model, kind, answers);
     const answerTo = id => answers.find(answer => answer.nodeId === id)?.answer;
     const hasUnsure = answers.some(answer => answer.answer === "Not sure");
@@ -1022,6 +1047,7 @@ function robotTree(model) {
     }
     nodes.liquid.hint = "Normal water in a designated mopping tank is not accidental electrical exposure. If you cannot tell, choose Not sure.";
     for (const kind of ["safety", "safetyUncertain", "uncertain", "chargeIssue", "uncharged", "indicator", "stuck", "cutoff", "navigation", "fullBin", "dirtyFilter", "blocked", "weakPickup", "dockIssue", "noiseIssue", "review", "batteryLow", "brushDebris", "moppingMode", "scheduleIssue"]) nodes[kind] = {type: "result", kind};
+    addDamageQuestions(nodes, q, model);
     return {start: "smell", nodes};
 }
 
@@ -1108,7 +1134,7 @@ TROUBLESHOOTING_MODELS.miele_classic_c1_sban0 = {
     todo: 'Electrical/no-start faults, cord reel, unexplained noise, internal repairs and other floorhead variants require qualified support; no failed part is established.'
 };
 
-function mieleTree() {
+function mieleTree(model) {
     const q = (text, yes, no, unsure) => ({type:'question', text, hint:DIAGNOSIS_POLICY.observation, next:{Yes:yes, No:no, 'Not sure':unsure}});
     const nodes = {
         smell:q('Is there a burning smell?', 'safety', 'damage', 'safetyUncertain'),
@@ -1129,6 +1155,7 @@ function mieleTree() {
         push:q('Is the floorhead unusually difficult to push?', 'hardPush', 'review', 'uncertain')
     };
     for (const kind of ['safety','safetyUncertain','uncertain','powerIssue','unplugged','cutoff','fullBag','blocked','dirtyFilter','brushIssue','noiseIssue','hardPush','review']) nodes[kind]={type:'result',kind};
+    addDamageQuestions(nodes, q, model);
     return {start:'smell',nodes};
 }
 

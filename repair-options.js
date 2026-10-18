@@ -84,6 +84,10 @@
         if (plan.hidden) return;
         const d = getDiagnosis(activeModel,node.kind,answers);
         parts(d);
+        if (d.status === 'safety' && answers.some(a => a.nodeId === 'smell' && a.answer === 'Yes')) {
+            plan.hidden = true;
+            return;
+        }
         const maintenance = d.status === 'result' && (d.maintenance || ['fullBin','dirtyFilter','uncharged','chargeSetting','unplugged'].includes(d.kind));
         getElement('repair-route').textContent = d.status === 'safety' ? 'Stop using it. Get a qualified safety assessment.' : maintenance ? 'A supported maintenance or setup step is available.' : d.kind === 'noIssue' ? 'No repair has been established as necessary.' : 'Professional assessment is the next step.';
         getElement('repair-route-detail').textContent = d.kind === 'noIssue' ? 'These answers did not reveal a fault. This is not a safety inspection or a guarantee that the vacuum is fault-free. If the original symptom persists, record it and share this summary with the manufacturer.' : maintenance ? 'Use only the listed safe actions above. This may help the reported symptom; it does not prove that the vacuum is fixed. Stop if the action does not help or does not match your machine.' : 'A photo and these answers cannot establish whether repair is possible or economical. Use the manufacturer link above and share your summary. Do not open the motor, battery or electrical housing.';
