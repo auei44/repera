@@ -204,7 +204,7 @@
             await request("/api/gemini/assess", JSON.stringify(payload), explainButton, explainStatus, result => {
                 if (typeof result.explanation !== "string") throw new Error("The assessment service did not return an explanation.");
                 explanation.textContent = result.explanation;
-                explainStatus.textContent = (payload.photo ? "Photo and questionnaire assessment" : "Questionnaire assessment") + ": AI wording, not a confirmed diagnosis";
+                explainStatus.textContent = (payload.photo ? "Based on your photo and answers" : "Based on your answers") + ". This is not a confirmed diagnosis.";
             });
         } catch (error) {
             if (stamp === version) explainStatus.textContent = error.message.replace(/Gemini/g, "assessment service");
