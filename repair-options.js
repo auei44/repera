@@ -1,6 +1,7 @@
 // Repair routing is derived from reviewed guidance, not an AI guess about repairability.
 (() => {
     const plan = getElement('repair-plan');
+    const partsBox = getElement('parts-options'), partsHome = partsBox.nextElementSibling;
     const country = getElement('recycling-country');
     const decision = getElement('repair-decision'), location = getElement('recycling-location');
     const locate = getElement('recycling-locate'), status = getElement('recycling-location-status');
@@ -39,13 +40,24 @@
             getElement('parts-context').textContent = 'No replacement part has been established as necessary from these answers. If a symptom persists, share your summary with the manufacturer before buying parts.';
             return;
         }
+        const options = d.kind === 'damageReview' ? (catalog?.parts || []).filter(part => part.damageRelated) : catalog?.parts;
         getElement('parts-context').textContent = catalog
             ? 'If a part is confirmed damaged or due for replacement, use these manufacturer references to check part numbers and ordering options. This is not a list of diagnosed faults or instructions to dismantle the vacuum. ' + catalog.scope
             : 'Information still being verified: exact replacement part numbers and buying links for this model. Ask the manufacturer to confirm the failed part and compatibility using your model, type and serial number.';
-        if (!catalog) return;
-        for (const part of catalog.parts) {
+        if (d.kind === 'damageReview') {
+            getElement('parts-context').textContent = options?.length
+                ? 'If the damaged piece is one of these components, check its manufacturer listing below. We have not identified which piece is cracked. Confirm the exact model, serial number and damaged component before ordering. These are parts references, not repair instructions.'
+                : 'Information still being verified: a replacement for the damaged component. No unrelated maintenance parts are suggested. Ask the manufacturer to identify the cracked piece and confirm the correct part number.';
+        }
+        if (!catalog || !options?.length) return;
+        for (const part of options) {
             const row = document.createElement('li');
             row.append(part.name + (part.number ? ' \u2014 ' + part.number : '') + '. ', sourceLink({title: part.linkLabel || (part.lookup ? 'Ask about ordering this part' : 'View manufacturer listing'), url: part.url}));
+            const price = getPartPrice(part), priceText = document.createElement('p');
+            priceText.textContent = price.text;
+            if (price.source) priceText.append(' ', sourceLink(price.source));
+            row.appendChild(priceText);
+            if (part.note) row.append(' ', part.note);
             if (part.source) row.append(' Compatibility: ', sourceLink(part.source), '.');
             list.appendChild(row);
         }
@@ -81,10 +93,28 @@
             getElement('recycling-options').open = false;
             getElement('parts-options').open = false;
         }
+        getElement('cost-estimate').hidden = plan.hidden;
         if (plan.hidden) return;
         const d = getDiagnosis(activeModel,node.kind,answers);
+        const cost = getCostEstimate(activeModel,d,answers);
+        getElement('cost-estimate-summary').textContent = cost.summary;
+        getElement('cost-estimate-details').replaceChildren(...cost.details.map(text => {
+            const row = document.createElement('li'); row.textContent = text; return row;
+        }));
+        getElement('cost-estimate-reviewed').textContent = cost.notes.join(' ');
+        getElement('cost-estimate-sources').replaceChildren(...cost.sources.map(source => {
+            const row = document.createElement('li'); row.appendChild(sourceLink(source)); return row;
+        }));
         parts(d);
-        if (d.status === 'safety' && answers.some(a => a.nodeId === 'smell' && a.answer === 'Yes')) {
+        if (d.kind === 'damageReview') {
+            getElement('instructions').after(partsBox);
+            partsBox.querySelector('summary').textContent = 'Replacement parts to check';
+            partsBox.open = true;
+        } else {
+            partsHome.before(partsBox);
+            partsBox.querySelector('summary').textContent = 'Find replacement parts';
+        }
+        if (d.status === 'safety') {
             plan.hidden = true;
             return;
         }

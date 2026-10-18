@@ -109,7 +109,7 @@
             </div>
             <p id="input-error" role="alert"></p>
             <div id="result" hidden aria-live="polite">
-                <h3>Your model</h3>
+                <h3>Model check</h3>
                 <p id="model-result" tabindex="-1"></p>
                 <p id="model-availability" role="status"></p>
                 <p id="photo-comparison" role="status" hidden></p>
@@ -182,6 +182,12 @@
                     <h4 id="support-stop-title">When to stop and contact qualified support</h4>
                     <p id="support-stop"></p>
                     <p id="manufacturer-contact"></p>
+                    <section id="cost-estimate" hidden aria-labelledby="cost-estimate-title">
+                        <h4 id="cost-estimate-title">Estimated cost (USD)</h4>
+                        <p id="cost-estimate-summary" class="notice"></p>
+                        <ul id="cost-estimate-details"></ul>
+                        <details><summary>Price sources and date</summary><p id="cost-estimate-reviewed"></p><ul id="cost-estimate-sources"></ul></details>
+                    </section>
                 <details id="gemini-explanation-panel" class="gemini-panel" hidden aria-labelledby="gemini-explanation-title">
                     <summary><span id="gemini-explanation-title">More about this assessment</span></summary>
                     <button id="gemini-explain-button" type="button" class="secondary" disabled>Retry assessment explanation</button>
@@ -205,7 +211,7 @@
                     <p id="repair-route-detail"></p>
                     <h4>Parts and repair help</h4>
                     <p id="parts-decision"></p>
-                    <p>Before authorizing a repair, ask the manufacturer or repairer to confirm the fault, exact model/type, compatible part number, full quote and warranty coverage. Repera does not estimate repair costs from a photo.</p>
+                    <p>Before authorizing a repair, ask the manufacturer or repairer to confirm the fault, exact model/type, compatible part number, full quote and warranty coverage. Cost examples are budgeting references; your final price requires a confirmed fault and quote.</p>
                     <details id="parts-options">
                         <summary>Find replacement parts</summary>
                         <p id="parts-context"></p>
@@ -228,7 +234,7 @@
                         <div id="recycling-guidance" aria-live="polite"></div>
                         <p id="battery-disposal-note"></p>
                         <h4>Find a recycling place nearby</h4>
-                        <p id="recycling-location-help">Share your location once, or enter a city or postcode. No ongoing tracking. Repera keeps it only in this tab, excludes it from Gemini and saved summaries, and clears it when the assessment changes. Opening the search link shares that location with Google Maps.</p>
+                        <p id="recycling-location-help">Share your location once, or enter a city or postcode. No ongoing tracking. Repera keeps it only in this tab, excludes it from the assessment service and saved summaries, and clears it when the assessment changes. Opening the search link shares that location with Google Maps.</p>
                         <label for="recycling-location">City or postcode, and country</label>
                         <input id="recycling-location" type="text" maxlength="120" autocomplete="off" aria-describedby="recycling-location-help">
                         <div class="recycling-actions">

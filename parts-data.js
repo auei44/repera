@@ -146,10 +146,14 @@ const PARTS_CATALOG = {
         ]
     },
     dyson_v8_animal_sv10: {
-        reviewed: '2026-10-14',
-        source: {title: 'Dyson pre-filter 965661-01: compatible machines', url: 'https://www.dyson.co.uk/support/journey/spare-details.965661-01'},
-        scope: 'UK listing explicitly includes V8 Animal. Confirm your serial number and filter shape with Dyson; batteries and motor assemblies are not covered here.',
-        parts: [{name: 'Pre-filter', number: '965661-01', url: 'https://www.dyson.co.uk/support/journey/spare-details.965661-01'}]
+        reviewed: '2026-10-18',
+        source: {title: 'Dyson cordless spare-parts selector: V8 SV10 and variants', url: 'https://www.dyson.com/spare-parts/vacuum-cleaners/cordless'},
+        scope: 'Each part has its own manufacturer compatibility source naming V8 Animal. Listings are regional; confirm your serial number and variant with Dyson before ordering. Listing a part does not identify the damaged component or establish a need to replace it. Batteries and motor assemblies are not covered here.',
+        parts: [
+            {name:'Pre-filter', number:'965661-01', url:'https://www.dyson.co.uk/support/journey/spare-details.965661-01', source:{title:'Dyson pre-filter 965661-01: compatible machines',url:'https://www.dyson.co.uk/support/journey/spare-details.965661-01'}},
+            {name:'Replacement bin', number:'967699-01', damageRelated:true, note:'UK listing. Confirm serial-number compatibility and current regional availability.', url:'https://www.dyson.co.uk/support/journey/spare-details.967699-01', source:{title:'Dyson bin 967699-01: V8 Animal compatibility',url:'https://www.dyson.co.uk/support/journey/spare-details.967699-01'}},
+            {name:'Replacement wand', number:'967477-04', damageRelated:true, note:'US listing. Confirm serial-number compatibility and current availability.', url:'https://www.dyson.com/support/journey/spare-details.967477-04', source:{title:'Dyson wand 967477-04: V8 Animal compatibility',url:'https://www.dyson.com/support/journey/spare-details.967477-04'}}
+        ]
     },
     eufy_robovac_11s: {
         reviewed: '2026-10-14',
@@ -219,3 +223,79 @@ const PARTS_CATALOG = {
 };
 
 PARTS_CATALOG.eufy_robovac_30c = PARTS_CATALOG.eufy_robovac_11s;
+
+
+const COST_REVIEWED = '2026-10-18';
+const COST_SOURCES = {
+    labor: {title:'A-1 Vacuum: published US shop labor rates', url:'https://www.a-1vacuum.com/vacuum-cleaner-service-repair/labor-rates/'},
+    repairs: {title:'Virginia Vacuums: published repair examples', url:'https://virginiavacuums.com/journal/vacuum-repair-cost'},
+    robot: {title:'Vacuum.Repair: published robot service starting price', url:'https://vacuum.repair/pricing/'}
+};
+const US_PART_PRICES = {
+    '12618920': {amount:27.99, url:'https://www.mieleusa.com/product/12618920/4-vacuum-bags-gn-hyclean-air'},
+    '03944711': {amount:13.00, url:'https://www.mieleusa.com/product/3944711/airclean-filter-sf-sac-20-30'},
+    '4636450': {amount:25.99, unavailable:true},
+    '4503461': {amount:24.99, unavailable:true},
+    '4636433': {amount:35.99},
+    '4636423': {amount:39.99},
+    '4650995': {amount:13.99},
+    '4646490': {amount:45.99},
+    '967699-01': {amount:24.99, url:'https://www.dyson.com/support/journey/spare-details.967699-01'},
+    '967477-04': {amount:29.99, unavailable:true},
+    'RR-Wfilter-01': {amount:19.79},
+    'RR-BS0-Q80MaxPlus-M2': {amount:15.99},
+    '1608225': {amount:15.99},
+    '32074': {amount:9.99, url:'https://www.bissell.com/s/bissell/product/style-9-drive-belt---2-pack-32074.html'},
+    '2038072': {amount:21.95, url:'https://www.bissellcommercial.com/products/2038072-brush-roll'},
+    '12141': {amount:13.99}
+};
+function getPartPrice(part) {
+    const price = US_PART_PRICES[part.number] || (part.url === 'https://www.eufy.com/us/products/t29090n1' ? {amount:22.99} : null);
+    if (!price) return {text:'US price not verified; ask the supplier for a quote.', source:null};
+    return {text:'Estimated part cost: $' + price.amount.toFixed(2) + ' USD. Listed price checked ' + COST_REVIEWED + '; part only, before tax, shipping and installation. ' + (price.unavailable ? 'Listed out of stock when checked. ' : '') + 'Confirm current price and availability.',
+        source:{title:'US price source',url:price.url || part.url}};
+}
+function getCostEstimate(model, diagnosis, history) {
+    const result = {summary:'Total repair cost: quote required.', details:[], notes:[], sources:[], reviewed:COST_REVIEWED};
+    const answer = id => resolveSafetyAnswers(history).find(a => a.nodeId === id)?.answer;
+    const knownRobot = model.family === 'robot' && /iRobot|Roborock|ECOVACS/i.test(model.name);
+    if (diagnosis.kind === 'noIssue') {
+        result.summary = 'No repair or purchase has been established as necessary.';
+        result.details.push('A repair price is not applicable to this result. If the problem persists, request an assessment and quote.');
+    } else if (diagnosis.status === 'safety') {
+        result.summary = 'Repair cost: a qualified assessment and quote are needed.';
+        result.details.push(answer('smell') === 'Yes' ? 'A burning smell needs assessment before the cause or repairability can be established.' : 'The cause and repairability need assessment.');
+        if (knownRobot) {
+            result.details.push('Robot service example: from $249 for selected charging, sensor, wheel or brush-motor faults. Safety damage needs a separate quote.');
+            result.sources.push(COST_SOURCES.robot);
+        } else if (model.cordless) {
+            result.details.push('If control-board replacement is needed: $120-$260 at one US shop. The failed component has not been identified.');
+            result.sources.push(COST_SOURCES.repairs);
+        } else if (model.family === 'miele') {
+            result.details.push('If a Miele motor-brush rebuild is needed: $150-$280 at one US shop. The failed component has not been identified.');
+            result.sources.push(COST_SOURCES.repairs);
+        } else if (model.family !== 'robot') {
+            result.details.push('If upright motor replacement is needed: $150-$300 at one US shop. The failed component has not been identified.');
+            result.sources.push(COST_SOURCES.repairs);
+        }
+    } else if (diagnosis.kind === 'damageReview') {
+        result.summary = 'Damaged-part repair: quote required once the component is identified.';
+        result.details.push('Use any checked part-only prices below for budgeting. Installation labor is separate; a listed part is not a confirmed replacement.');
+    } else if (diagnosis.status === 'result' && (diagnosis.maintenance || ['fullBin','fullBag','dirtyFilter','uncharged','chargeSetting','unplugged'].includes(diagnosis.kind))) {
+        result.summary = 'Listed care or setup: $0 in service labor if you do it yourself; supplies cost extra.';
+        result.details.push('Follow only the listed safe action. A new filter, bag or other supply is a separate purchase, if needed.');
+        if (diagnosis.kind === 'blocked') {
+            result.details.push('Professional alternative: A-1 lists simple unclog labor at $29.95 (up to 15 minutes). Parts and additional work cost extra.');
+            result.sources.push(COST_SOURCES.labor);
+        } else if (diagnosis.kind === 'dirtyFilter') {
+            result.details.push('Professional alternative: one US shop lists filter-swap labor at $20-$50, plus the filter.');
+            result.sources.push(COST_SOURCES.repairs);
+        }
+    }
+    if (result.summary.includes('quote') || result.summary.includes('Quote')) {
+        (result.sources.length ? result.notes : result.details).push('Labor benchmark: A-1 lists $100/hour plus parts, with a $29.95 minimum bench charge. Ask your repairer about diagnostic fees and warranty coverage.');
+        result.sources.push(COST_SOURCES.labor);
+    }
+    result.notes.push('US budgeting references checked ' + COST_REVIEWED + ', not a national average or a quote for your vacuum. Costs depend on the confirmed fault and shop. Confirm tax, shipping, parts and labor before authorizing work.');
+    return result;
+}

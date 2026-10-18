@@ -231,7 +231,38 @@ function canDiagnose(model) {
     return Boolean(model && model.diagnosticEnabled === true && model.supportedMvp === true);
 }
 
-function addDamageQuestions(nodes, question, model) {
+const SAFETY_CLARIFICATIONS = {
+    smell: "When you last used it, did you notice a new smell like burning plastic or electrical wiring?",
+    damage: "From what you have already seen, is anything cracked, broken, loose or missing?",
+    liquid: "",
+    smoke: "Did you see smoke coming from the machine or its power equipment?",
+    heat: "During normal use, did you notice melting, scorching or heat that seemed abnormal?",
+    batteryDamage: "From what you have already seen, is the battery case bulging, split or leaking?",
+    damageElectrical: ""
+};
+
+function addSafetyClarifications(nodes, question) {
+    for (const [id, text] of Object.entries(SAFETY_CLARIFICATIONS)) {
+        const original = nodes[id];
+        if (!original || original.next["Not sure"] !== "safetyUncertain") continue;
+        const clarificationText = id === "liquid" ? "From what you already saw, " + original.text.charAt(0).toLowerCase() + original.text.slice(1) : text || "From what you already noticed: " + original.text;
+        const clarification = question(clarificationText, original.next.Yes, original.next.No, "safetyUncertain");
+        clarification.clarifies = id;
+        clarification.hint = "Answer from memory or what you have already seen. Do not switch it on, touch damaged parts or take it apart to check. If you cannot tell, choose Not sure.";
+        nodes[id + "Clarify"] = clarification;
+        original.next["Not sure"] = id + "Clarify";
+    }
+}
+
+function resolveSafetyAnswers(history) {
+    return history.filter(a => !Object.keys(SAFETY_CLARIFICATIONS).some(id => a.nodeId === id + "Clarify")).map(a => {
+        if (a.answer !== "Not sure" || !(a.nodeId in SAFETY_CLARIFICATIONS)) return a;
+        const clarification = history.find(next => next.nodeId === a.nodeId + "Clarify");
+        return clarification && clarification.answer !== "Not sure" ? {...a, answer:clarification.answer} : a;
+    });
+}
+
+function addDamageQuestions(nodes, question, model, clarify) {
     nodes.damage.next.Yes = "damageElectrical";
     const electrical = model.cordless
         ? "Does the damage involve a cable, plug, battery, charger" + (model.family === "robot" && model.dock !== false ? ", dock" : "") + " or electrical housing?"
@@ -240,13 +271,14 @@ function addDamageQuestions(nodes, question, model) {
     nodes.damagePart = question("Is a part cracked, broken, loose or missing?", "damageReview", "damageCosmetic", "damageReview");
     nodes.damageCosmetic = question("Is it only surface scratches or scuffs, with no cracked, loose or missing parts?", "liquid", "damageReview", "damageReview");
     nodes.damageReview = {type: "result", kind: "damageReview"};
+    if (clarify) addSafetyClarifications(nodes, question);
 }
 
 // Every question has three explicit destinations. No answer is treated as a diagnosis.
-function buildDiagnosisTree(model) {
+function buildDiagnosisTree(model, clarify = true) {
     if (!canDiagnose(model)) return null;
-    if (model.family === "robot") return robotTree(model);
-    if (model.family === "miele") return mieleTree(model);
+    if (model.family === "robot") return robotTree(model, clarify);
+    if (model.family === "miele") return mieleTree(model, clarify);
     const question = (text, yes, no, unsure) => ({ type: "question", text, next: { Yes: yes, No: no, "Not sure": unsure } });
     const result = kind => ({ type: "result", kind });
     const nextBrush = model.brush ? "brush" : "noise";
@@ -278,9 +310,9 @@ function buildDiagnosisTree(model) {
         chargeSwitch: question("Was the switch left ON while charging?", "chargeSetting", "powerIssue", "powerIssue")
     };
     ["safety", "safetyUncertain", "uncertain", "blocked", "cutoff", "fullBin", "dirtyFilter", "brushIssue", "noiseIssue", "whistleNoise", "grindingNoise", "indicator", "review", "powerIssue", "uncharged", "unplugged", "chargeSetting"].forEach(kind => { nodes[kind] = result(kind); });
-    addDamageQuestions(nodes, question, model);
+    addDamageQuestions(nodes, question, model, clarify);
     Object.entries(nodes).forEach(([id, node]) => {
-        if (node.type === "question") node.hint = OBSERVATION_HINTS[id] || "";
+        if (node.type === "question") node.hint = OBSERVATION_HINTS[id] || node.hint || "";
     });
     // Remove questions that do not apply to this model (especially handheld brush rolls).
     const reachable = {};
@@ -303,6 +335,7 @@ function getDiagnosis(model, kind, answers) {
         actions: [], stop: model?.userMessage || DIAGNOSIS_POLICY.pending,
         sources: model?.sources || [], verification: DIAGNOSIS_POLICY.pending
     };
+    answers = resolveSafetyAnswers(answers);
     // A result caller cannot override a safety answer still present in the history.
     const safetyIds = ["smell", "liquid", "smoke", "heat", "batteryDamage", "damageElectrical"];
     const damageAnswer = id => answers.find(a => a.nodeId === id)?.answer;
@@ -349,7 +382,7 @@ function getDiagnosis(model, kind, answers) {
     };
     // A safety concern stops all maintenance, including when the concern is uncertain.
     if (kind === "safety" || kind === "safetyUncertain" || kind === "manualStop") {
-        data.likely = "A safety concern needs assessment; the underlying cause is not established.";
+        data.likely = kind === "safetyUncertain" ? "A possible safety concern could not be ruled out. The cause is not established." : "A safety concern needs assessment; the underlying cause is not established.";
         data.reason = kind === "manualStop" ? "You chose Stop for safety." :
             kind === "safetyUncertain" ? "A safety question was answered Not sure, so maintenance is paused." :
             "You reported a safety warning sign. Your answer summary records the observation.";
@@ -988,7 +1021,7 @@ for (const [id, [name, url, gap]] of Object.entries(ROBOT_PENDING)) {
     };
 }
 
-function robotTree(model) {
+function robotTree(model, clarify = true) {
     const q = (text, yes, no, unsure) => ({type: "question", text, hint: "Answer from what you already observed. Do not run or dismantle the robot to answer.", next: {Yes: yes, No: no, "Not sure": unsure}});
     const nodes = {
         smell: q("Is there a burning smell?", "safety", "damage", "safetyUncertain"),
@@ -1047,7 +1080,7 @@ function robotTree(model) {
     }
     nodes.liquid.hint = "Normal water in a designated mopping tank is not accidental electrical exposure. If you cannot tell, choose Not sure.";
     for (const kind of ["safety", "safetyUncertain", "uncertain", "chargeIssue", "uncharged", "indicator", "stuck", "cutoff", "navigation", "fullBin", "dirtyFilter", "blocked", "weakPickup", "dockIssue", "noiseIssue", "review", "batteryLow", "brushDebris", "moppingMode", "scheduleIssue"]) nodes[kind] = {type: "result", kind};
-    addDamageQuestions(nodes, q, model);
+    addDamageQuestions(nodes, q, model, clarify);
     return {start: "smell", nodes};
 }
 
@@ -1081,7 +1114,7 @@ function robotDiagnosis(model, kind, answers) {
         verification: "", verificationDetail: ""};
     if (model.dock === false) d.stop = d.stop.replace("battery, dock", "battery, charger");
     if (safe) {
-        d.status = "safety"; d.likely = "A safety concern requires qualified assessment; its cause is not established.";
+        d.status = "safety"; d.likely = kind === "safetyUncertain" ? "A possible safety concern could not be ruled out. The cause is not established." : "A safety concern requires qualified assessment; its cause is not established.";
         d.reason = kind === "manualStop" ? "You chose Stop for safety." : "A safety warning was reported or could not be ruled out.";
         d.actions = [{text: DIAGNOSIS_POLICY.stop}]; d.stop = DIAGNOSIS_POLICY.stop;
         return d;
@@ -1134,7 +1167,7 @@ TROUBLESHOOTING_MODELS.miele_classic_c1_sban0 = {
     todo: 'Electrical/no-start faults, cord reel, unexplained noise, internal repairs and other floorhead variants require qualified support; no failed part is established.'
 };
 
-function mieleTree(model) {
+function mieleTree(model, clarify = true) {
     const q = (text, yes, no, unsure) => ({type:'question', text, hint:DIAGNOSIS_POLICY.observation, next:{Yes:yes, No:no, 'Not sure':unsure}});
     const nodes = {
         smell:q('Is there a burning smell?', 'safety', 'damage', 'safetyUncertain'),
@@ -1155,7 +1188,7 @@ function mieleTree(model) {
         push:q('Is the floorhead unusually difficult to push?', 'hardPush', 'review', 'uncertain')
     };
     for (const kind of ['safety','safetyUncertain','uncertain','powerIssue','unplugged','cutoff','fullBag','blocked','dirtyFilter','brushIssue','noiseIssue','hardPush','review']) nodes[kind]={type:'result',kind};
-    addDamageQuestions(nodes, q, model);
+    addDamageQuestions(nodes, q, model, clarify);
     return {start:'smell',nodes};
 }
 

@@ -89,6 +89,8 @@ function resetSelection() {
     photoSuggestion.hidden = true;
     photoConfirmations.replaceChildren();
     result.hidden = true;
+    result.removeAttribute("data-kind");
+    result.querySelector("h3").textContent = "Model check";
     modelResult.textContent = "";
     getElement("model-availability").textContent = "";
     getElement("unsupported-sources").replaceChildren();
@@ -118,6 +120,8 @@ function clearPreview() {
 
 // Preview local images and clear stale results when a file changes or is removed.
 photoInput.addEventListener("change", function () {
+    // A replacement photo after a diagnosis belongs to a new identification.
+    if (photoInput.files.length && tree && !questionPanel.hidden) modelSelect.value = "";
     resetSelection();
     clearPreview();
     photoError.textContent = "";
@@ -246,7 +250,7 @@ async function recognizePhoto() {
     };
     identifyButton.disabled = true;
     identifyButton.setAttribute("aria-busy", "true");
-    identifyButton.textContent = "Checking photo…";
+    identifyButton.textContent = "Identifying...";
     result.hidden = false;
     modelResult.textContent = "Checking your photo…";
     const service = await recognitionService;
@@ -287,7 +291,7 @@ async function recognizePhoto() {
             predictionController = null;
             identifyButton.disabled = false;
             identifyButton.removeAttribute("aria-busy");
-            identifyButton.textContent = modelSelect.value ? "Continue" : "Identify vacuum";
+            identifyButton.textContent = modelSelect.value ? "Continue" : "Retry identification";
             focusResult();
         }
     }
@@ -295,28 +299,36 @@ async function recognizePhoto() {
 
 // A visual family never proves an exact model. Require a separate label confirmation.
 function showPhotoSuggestion(prediction) {
-    if (prediction.status !== "suggestion" || !Array.isArray(prediction.candidate_models)) {
+    result.dataset.kind = "photo";
+    result.querySelector("h3").textContent = "Model check";
+    if (!["suggestion", "guess"].includes(prediction.status) || !Array.isArray(prediction.candidate_models)) {
         modelResult.textContent = "The photo did not give a reliable model suggestion.";
         getElement("model-availability").textContent = "Choose your model manually using its label. This recognizer may not know your vacuum.";
         return;
     }
-    modelResult.textContent = "Photo suggestion: " + prediction.family;
+    modelResult.textContent = (prediction.status === "guess" ? "Most likely guess: " : "Most likely match: ") + prediction.family;
     photoSuggestion.hidden = false;
-    getElement("photo-model-notice").textContent = (prediction.experimental ?
-        "This is an experimental suggestion and may be wrong. " : "A photo cannot confirm an exact model number. ") +
-        "Read the label on your vacuum. Confirm a matching model below, or choose a different model manually.";
+    getElement("photo-model-notice").textContent = prediction.status === "guess" ? "Low-confidence guess. Check the model before continuing." : "";
+    getElement("photo-model-notice").hidden = prediction.status !== "guess";
     const candidates = [...new Set(prediction.candidate_models)].filter(id => canDiagnose(TROUBLESHOOTING_MODELS[id]));
     candidates.forEach(function (id) {
         const button = document.createElement("button");
         button.type = "button";
-        button.textContent = "My label matches " + TROUBLESHOOTING_MODELS[id].name;
+        button.textContent = "Confirm";
         button.addEventListener("click", () => showModelIdentity(id, true));
-        photoConfirmations.appendChild(button);
+        if (candidates.length > 1) {
+            const row = document.createElement("div"), name = document.createElement("p");
+            row.className = "model-candidate";
+            name.textContent = TROUBLESHOOTING_MODELS[id].name;
+            row.append(name, button);
+            photoConfirmations.appendChild(row);
+        } else photoConfirmations.appendChild(button);
     });
     if (!candidates.length) {
         const ids = Array.isArray(prediction.recognized_models) ? prediction.recognized_models : prediction.candidate_models;
         const model = ids.map(id => TROUBLESHOOTING_MODELS[id]).find(model => model && !canDiagnose(model));
-        getElement("photo-model-notice").textContent = "This is an experimental visual suggestion, not a confirmed model. Check the label on your vacuum.";
+        getElement("photo-model-notice").hidden = false;
+        getElement("photo-model-notice").textContent = "Check the exact model on the vacuum's label before using model-specific guidance.";
         getElement("model-availability").textContent = model?.userMessage ||
             "Information still being verified. Verified guidance is not available for this suggestion. Contact the manufacturer with the exact model number.";
         if (model?.support) getElement("unsupported-sources").appendChild(sourceLink(model.support));
@@ -477,6 +489,10 @@ function buildSummaryText(model, diagnosis, history) {
         lines.push(source.title, source.url, source.scope || "", "");
     });
     if (model.support) lines.push("Manufacturer support", model.support.title, model.support.url, "");
+    const cost = getCostEstimate(model, diagnosis, history);
+    lines.push("Estimated cost (USD)", cost.summary, ...cost.details, ...cost.notes, "Price sources checked " + cost.reviewed);
+    cost.sources.forEach(source => lines.push(source.title, source.url));
+    lines.push("");
     const description = getElement("problem-description").value.trim();
     if (description) lines.push("User symptom description (unverified)", description, "");
     if (!getElement("repair-plan").hidden) {
