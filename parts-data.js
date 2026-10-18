@@ -258,26 +258,12 @@ function getPartPrice(part) {
 function getCostEstimate(model, diagnosis, history) {
     const result = {summary:'Total repair cost: quote required.', details:[], notes:[], sources:[], reviewed:COST_REVIEWED};
     const answer = id => resolveSafetyAnswers(history).find(a => a.nodeId === id)?.answer;
-    const knownRobot = model.family === 'robot' && /iRobot|Roborock|ECOVACS/i.test(model.name);
     if (diagnosis.kind === 'noIssue') {
         result.summary = 'No repair or purchase has been established as necessary.';
         result.details.push('A repair price is not applicable to this result. If the problem persists, request an assessment and quote.');
     } else if (diagnosis.status === 'safety') {
         result.summary = 'Repair cost: a qualified assessment and quote are needed.';
         result.details.push(answer('smell') === 'Yes' ? 'A burning smell needs assessment before the cause or repairability can be established.' : 'The cause and repairability need assessment.');
-        if (knownRobot) {
-            result.details.push('Robot service example: from $249 for selected charging, sensor, wheel or brush-motor faults. Safety damage needs a separate quote.');
-            result.sources.push(COST_SOURCES.robot);
-        } else if (model.cordless) {
-            result.details.push('If control-board replacement is needed: $120-$260 at one US shop. The failed component has not been identified.');
-            result.sources.push(COST_SOURCES.repairs);
-        } else if (model.family === 'miele') {
-            result.details.push('If a Miele motor-brush rebuild is needed: $150-$280 at one US shop. The failed component has not been identified.');
-            result.sources.push(COST_SOURCES.repairs);
-        } else if (model.family !== 'robot') {
-            result.details.push('If upright motor replacement is needed: $150-$300 at one US shop. The failed component has not been identified.');
-            result.sources.push(COST_SOURCES.repairs);
-        }
     } else if (diagnosis.kind === 'damageReview') {
         result.summary = 'Damaged-part repair: quote required once the component is identified.';
         result.details.push('Use any checked part-only prices below for budgeting. Installation labor is separate; a listed part is not a confirmed replacement.');
@@ -292,10 +278,12 @@ function getCostEstimate(model, diagnosis, history) {
             result.sources.push(COST_SOURCES.repairs);
         }
     }
-    if (result.summary.includes('quote') || result.summary.includes('Quote')) {
+    if (diagnosis.status !== 'safety' && (result.summary.includes('quote') || result.summary.includes('Quote'))) {
         (result.sources.length ? result.notes : result.details).push('Labor benchmark: A-1 lists $100/hour plus parts, with a $29.95 minimum bench charge. Ask your repairer about diagnostic fees and warranty coverage.');
         result.sources.push(COST_SOURCES.labor);
     }
-    result.notes.push('US budgeting references checked ' + COST_REVIEWED + ', not a national average or a quote for your vacuum. Costs depend on the confirmed fault and shop. Confirm tax, shipping, parts and labor before authorizing work.');
+    result.notes.push(diagnosis.status === 'safety'
+        ? 'No repair or price has been identified. Ask a qualified professional to assess the safety concern before discussing costs.'
+        : 'US budgeting references checked ' + COST_REVIEWED + ', not a national average or a quote for your vacuum. Costs depend on the confirmed fault and shop. Confirm tax, shipping, parts and labor before authorizing work.');
     return result;
 }
