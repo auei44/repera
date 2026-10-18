@@ -4,6 +4,7 @@
     const partsBox = getElement('parts-options'), partsHome = partsBox.nextElementSibling;
     const country = getElement('recycling-country');
     const decision = getElement('repair-decision'), location = getElement('recycling-location');
+    const defaultLocationPlaceholder = location.placeholder;
     const locate = getElement('recycling-locate'), status = getElement('recycling-location-status');
     const nearby = getElement('recycling-nearby');
     let request = 0, assessment = '';
@@ -11,6 +12,8 @@
     function clearLocation() {
         request++;
         location.value = '';
+        location.placeholder = defaultLocationPlaceholder;
+        location.removeAttribute('aria-busy');
         nearby.replaceChildren();
         nearby.hidden = true;
         status.textContent = '';
@@ -166,6 +169,8 @@
         const current = request;
         locate.disabled = true;
         locate.setAttribute('aria-busy', 'true');
+        location.placeholder = 'Using location...';
+        location.setAttribute('aria-busy', 'true');
         status.textContent = 'Waiting for location permission. You can cancel with Clear location.';
         const fail = err => {
             if (current !== request) return;
@@ -180,6 +185,7 @@
                 if (!Number.isFinite(latitude) || !Number.isFinite(longitude) || Math.abs(latitude) > 90 || Math.abs(longitude) > 180) return fail();
                 clearLocation();
                 search(latitude.toFixed(2) + ',' + longitude.toFixed(2));
+                location.placeholder = 'Using your location';
                 status.textContent = 'Search ready using rounded coordinates. Open the link to share this approximate location with Google Maps, or clear it.';
             }, fail, {enableHighAccuracy:false, timeout:10000, maximumAge:0});
         } catch { fail(); }

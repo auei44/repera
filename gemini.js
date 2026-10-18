@@ -27,7 +27,7 @@
         else if (photoAttempted && photoReady && !modelSelect.value) identifyButton.textContent = "Retry identification";
         for (const button of [...photoConfirmations.querySelectorAll("button"), ...confirmation.querySelectorAll("button")]) button.disabled = checkingPhoto;
         const eligible = currentDiagnosis();
-        panel.hidden = !eligible || eligible.status === "safety";
+        panel.hidden = !eligible || eligible.status === "safety" || !explanation.textContent.trim();
         if (eligible && panel.dataset.status !== eligible.status) {
             panel.open = eligible.status !== "safety";
             panel.dataset.status = eligible.status;
