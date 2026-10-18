@@ -25,7 +25,7 @@
         photoButton.textContent = checkingPhoto || photoButton.hasAttribute("aria-busy") ? "Identifying..." : "Retry identification";
         if (checkingPhoto) { identifyButton.disabled = true; identifyButton.textContent = "Identifying..."; }
         else if (photoAttempted && photoReady && !modelSelect.value) identifyButton.textContent = "Retry identification";
-        for (const button of [...photoConfirmations.children, ...confirmation.children]) button.disabled = checkingPhoto;
+        for (const button of [...photoConfirmations.querySelectorAll("button"), ...confirmation.querySelectorAll("button")]) button.disabled = checkingPhoto;
         const eligible = currentDiagnosis();
         panel.hidden = !eligible || eligible.status === "safety";
         if (eligible && panel.dataset.status !== eligible.status) {
@@ -34,7 +34,7 @@
         }
         getElement("gemini-photo-panel").hidden = !service;
         explainButton.disabled = !service || !eligible || !!controller;
-        if (eligible && !service) explainStatus.textContent = "Gemini is unavailable. No AI response was generated. The verified guidance above remains available.";
+        if (eligible && !service) explainStatus.textContent = "The assessment service is unavailable. The verified guidance above remains available.";
     }
     function invalidate() {
         version++;
@@ -68,7 +68,7 @@
         controller = requestController;
         const timeout = setTimeout(() => requestController.abort(), 45000);
         button.setAttribute("aria-busy", "true");
-        status.textContent = button === photoButton ? "" : "Waiting for Gemini...";
+        status.textContent = button === photoButton ? "" : "Preparing your assessment...";
         refresh();
         try {
             const response = await fetch(endpoint, { method: "POST", body, signal: requestController.signal,
@@ -76,12 +76,12 @@
                     "Content-Type": typeof body === "string" ? "application/json" : "application/octet-stream" } });
             const result = await response.json();
             if (submitted !== version) return;
-            if (!response.ok) throw new Error(result.error || "Gemini could not finish.");
+            if (!response.ok) throw new Error(result.error || "The assessment could not finish.");
             onSuccess(result);
             return result;
         } catch (error) {
             if (submitted === version) status.textContent = error.name === "AbortError" ?
-                "Gemini timed out. Use the local tools or try again later." : error.message;
+                "The request timed out. Try again later or use the guidance already shown." : error.message.replace(/Gemini/g, "assessment service");
         } finally {
             clearTimeout(timeout);
             if (submitted === version) { controller = null; button.removeAttribute("aria-busy"); refresh(); }
@@ -105,16 +105,10 @@
             cloudMatch = result;
             const model = TROUBLESHOOTING_MODELS[result.model_id];
             if (!model || result.evidence === "unknown") {
-                photoResult.textContent = "Gemini could not suggest a supported model reliably. Read the vacuum's label and select it manually.";
+                photoResult.textContent = "No supported model could be identified reliably. Read the vacuum's label and select it manually.";
                 return;
             }
-            photoResult.textContent = "Most likely match: " + model.name + ". ";
-            if (modelSelect.value && modelSelect.value !== result.model_id) {
-                photoResult.append("This differs from your selection; your selected model has not been changed. ");
-            }
-            if (result.evidence === "visible_label" && result.observed_label) {
-                photoResult.append("Gemini read the label as: " + result.observed_label + ". Check it yourself. ");
-            }
+            photoResult.textContent = "Most likely match: " + model.name;
             if (!canDiagnose(model)) {
                 photoResult.append(model.userMessage || "Verified diagnostic guidance is unavailable for this model.");
                 if (model.support) photoResult.append(" ", sourceLink(model.support));
@@ -136,17 +130,18 @@
 
     function compareMatches() {
         comparison.hidden = false;
-        const localIds = localMatch?.status === "suggestion" ? (localMatch.recognized_models || localMatch.candidate_models) : [];
+        const localIds = ["suggestion", "guess"].includes(localMatch?.status) ? (localMatch.recognized_models || localMatch.candidate_models) : [];
         const cloudId = cloudMatch?.evidence !== "unknown" && TROUBLESHOOTING_MODELS[cloudMatch?.model_id] ? cloudMatch.model_id : null;
         if (localIds?.length && cloudId) {
             comparison.textContent = localIds.includes(cloudId) ?
-                "The neural network and Gemini suggested the same model family. Confirm the exact model on your vacuum's label." :
-                "The neural network and Gemini disagree. Check the model number on your vacuum's label before choosing either suggestion.";
+                "Both photo checks suggested the same model family. Confirm the exact model on your vacuum's label." :
+                "The photo checks disagree. Check the model number on your vacuum's label before choosing either suggestion.";
         } else if (localIds?.length) {
-            comparison.textContent = "The neural network suggested a model family. Gemini has not provided a match; use the vacuum's label to confirm it or check the photo again.";
+            comparison.textContent = "One photo check suggested a model family; the other did not establish a match. Use the vacuum's label to confirm it or check the photo again.";
         } else if (cloudId) {
-            comparison.textContent = "The neural network did not provide a usable match. Gemini's suggestion still needs confirmation against your vacuum's label.";
+            comparison.textContent = "One photo check did not provide a usable match. Confirm the suggested model against your vacuum's label.";
         } else comparison.textContent = "Neither check established a supported match. Use the vacuum's label to select a model manually.";
+        if (localMatch?.status === "guess") comparison.append(" The neural network result is a low-confidence guess.");
     }
 
     // One Continue action handles photo identification or the manually confirmed model.
@@ -207,12 +202,12 @@
             if (stamp !== version) return;
             explanation.textContent = "";
             await request("/api/gemini/assess", JSON.stringify(payload), explainButton, explainStatus, result => {
-                if (typeof result.explanation !== "string") throw new Error("Gemini did not return an explanation.");
+                if (typeof result.explanation !== "string") throw new Error("The assessment service did not return an explanation.");
                 explanation.textContent = result.explanation;
                 explainStatus.textContent = (payload.photo ? "Photo and questionnaire assessment" : "Questionnaire assessment") + ": AI wording, not a confirmed diagnosis";
             });
         } catch (error) {
-            if (stamp === version) explainStatus.textContent = error.message;
+            if (stamp === version) explainStatus.textContent = error.message.replace(/Gemini/g, "assessment service");
         }
     }
     explainButton.addEventListener("click", () => maybeAssess(true));
