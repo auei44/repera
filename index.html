@@ -37,13 +37,13 @@
         </section>
         <!-- Explain the actual workflow before someone enters, without promising a repair. -->
         <ol class="how-it-works" aria-label="How Repera works">
-            <li><span>01</span><div><h2>Choose your vacuum</h2><p>Match its model label or start with a photo suggestion.</p></div></li>
+            <li><span>01</span><div><h2>Choose your vacuum</h2><p>Match its model label or start with a neural-network photo suggestion.</p></div></li>
             <li><span>02</span><div><h2>Describe what happens</h2><p>One question at a time. Not sure is always an option.</p></div></li>
             <li><span>03</span><div><h2>Review your next step</h2><p>See possible causes, safety limits, and the original sources.</p></div></li>
         </ol>
         <!-- This notice describes actual behavior; it does not request tracking consent. -->
         <aside id="privacy-notice" class="privacy-notice" aria-labelledby="privacy-title">
-            <details class="privacy-details"><summary id="privacy-title">Photo privacy</summary><p>No tracking cookies. Repera processes photos without saving them. Google receives your photo, answers and description for the assessment and may use free-tier content to improve its products. Leave out personal information.</p></details>
+            <details class="privacy-details"><summary id="privacy-title">Photo privacy</summary><p>No tracking cookies. Repera's neural network suggests the vacuum model; its decision tree selects the troubleshooting result. Google helps word the explanation and provides a supporting photo check using your photo, answers and description. Google may use free-tier content to improve its products. Repera does not save uploaded photos. Leave out personal information.</p></details>
         </aside>
         </div>
         <!-- The welcome screen opens first; entering reveals the existing tools. -->
@@ -77,7 +77,7 @@
                         <span class="upload-limit">Optional &middot; up to 8 MB</span>
                         <input id="vacuum-photo" type="file" accept="image/*" capture="environment" aria-describedby="photo-help photo-error">
                     </label>
-                    <p id="photo-help" class="muted">Use a clear photo of the whole vacuum. Confirm any suggested model against its label.</p>
+                    <p id="photo-help" class="muted">Repera's neural network suggests a model from a clear photo of the whole vacuum. Confirm the suggested model against its label.</p>
                     <p id="photo-error" role="alert"></p>
                     <img id="photo-preview" alt="Vacuum photo preview" hidden>
                     <button id="clear-photo-button" class="secondary" type="button" hidden>Remove photo</button>
@@ -103,7 +103,7 @@
             <div class="selection-actions">
                 <details id="journey-consent-panel" class="privacy-details">
                     <summary>Photo privacy</summary>
-                    <p class="muted">Your photo, answers and description are sent to Google for the assessment. Google may use free-tier content to improve its products. Leave out personal information. Repera does not save uploaded photos. Support notes and recycling location are not sent to Google.</p>
+                    <p class="muted">Repera's neural network suggests the vacuum model, and its decision tree selects a possible issue from your answers. Google helps word the explanation and provides a supporting photo check using your photo, answers and description. Google may use free-tier content to improve its products. Leave out personal information. Repera does not save uploaded photos. Support notes and recycling location are not sent to Google.</p>
                 </details>
                 <div class="intake-buttons"><button id="identify-button" type="button">Identify vacuum</button><button id="resume-diagnosis-button" type="button" class="secondary" hidden>Return to current assessment</button></div>
             </div>
